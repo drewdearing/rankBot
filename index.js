@@ -51,19 +51,19 @@ const ranks = {
 }
 
 function overallRank(player_name, msg){
-	if(player_name in players){
-		let player = players[player_name]
+	if(player_name.toLowerCase() in players){
+		let player = players[player_name.toLowerCase()]
 		let rank = player.rank
 		if(rank != undefined){
 			if(player.active){
-				msg.reply("`"+player_name+"` is rank "+rank+".")
+				msg.reply("`"+player.name+"` is rank "+rank+".")
 			}
 			else{
-				msg.reply("`"+player_name+"` is rank "+rank+" overall, but is currently inactive.")
+				msg.reply("`"+player.name+"` is rank "+rank+" overall, but is currently inactive.")
 			}
 		}
 		else{
-			msg.reply("`"+player_name+"'s` rank has not been updated.")
+			msg.reply("`"+player.name+"'s` rank has not been updated.")
 		}
 	}
 	else{
@@ -86,32 +86,43 @@ function saveToFile(filename){
 
 function newTagRole(member, msg){
 	let guild = msg.guild
-	if(member in members && guild != null){
-		let player_name = members[member]
-		let guildMember = guild.members.find(gMember => gMember.id == member)
-		if(guildMember != null){
-			if(player_name in players && players[player_name].active){
-				let player = players[player_name]
-				if(player.active){
-					let new_role = "Bronze"
-					if(player.points >= ranks.Silver*max_points)
-						new_role = "Silver"
-					if(player.points >= ranks.Gold*max_points)
-						new_role = "Gold"
-					if(player.points >= ranks.Platinum*max_points)
-						new_role = "Platinum"
-					if(player.points >= ranks.Diamond*max_points)
-						new_role = "Diamond"
+	if(guild != null){
+		if(member in members){
+			let player_name = members[member]
+			let guildMember = guild.members.find(gMember => gMember.id == member)
+			if(guildMember != null){
+				if(player_name in players && players[player_name].active){
+					let player = players[player_name]
+					if(player.active){
+						let new_role = "Bronze"
+						if(player.points >= ranks.Silver*max_points)
+							new_role = "Silver"
+						if(player.points >= ranks.Gold*max_points)
+							new_role = "Gold"
+						if(player.points >= ranks.Platinum*max_points)
+							new_role = "Platinum"
+						if(player.points >= ranks.Diamond*max_points)
+							new_role = "Diamond"
+						guildMember.addRole(guild.roles.find(role => role.name === new_role)).then(() => {
+							msg.reply("your role will now reflect your ranking if you are currently active.")
+							guildMember.removeRoles(guild.roles.filter(role => role.name != new_role && role.name in ranks)).catch(console.log)
+						}).catch(console.log)
+					}
+				}
+				else{
+					let new_role = "Unranked"
 					guildMember.addRole(guild.roles.find(role => role.name === new_role)).then(() => {
-						msg.reply("your role will now reflect your ranking if you are currently active.")
+						msg.reply("you need to attend a tournament within the last 30 days to recieve a ranking!")
 						guildMember.removeRoles(guild.roles.filter(role => role.name != new_role && role.name in ranks)).catch(console.log)
 					}).catch(console.log)
 				}
 			}
-			else{
+		}
+		else{
+			let guildMember = guild.members.find(gMember => gMember.id == member)
+			if(guildMember != null){
 				let new_role = "Unranked"
 				guildMember.addRole(guild.roles.find(role => role.name === new_role)).then(() => {
-					msg.reply("you need to attend a tournament within the last 30 days to recieve a ranking!")
 					guildMember.removeRoles(guild.roles.filter(role => role.name != new_role && role.name in ranks)).catch(console.log)
 				}).catch(console.log)
 			}
@@ -245,7 +256,7 @@ function updatePlayers(retries, callback){
 		}
 		else{
 			player_fields.find('tbody').find('a').each(function(i, elem){
-				temp_players[$(this).text()] = {
+				temp_players[$(this).text().toLowerCase()] = {
 					"name": $(this).text(),
 					"points": undefined,
 					"rank": undefined,
@@ -261,6 +272,14 @@ function updatePlayers(retries, callback){
 	});
 }
 
+function playerTagTaken(tag){
+	for(member in members){
+		if(members[member].toLowerCase() === tag.toLowerCase())
+			return true
+	}
+	return false
+}
+
 client.on('ready', () => {
 	console.log(`Logged in as ${client.user.tag}!`)
 })
@@ -270,15 +289,54 @@ client.on('message', msg => {
 	let member = msg.author.id
 	if (message_parts[0] === '!tag') {
 		if(message_parts.length > 1){
-			let tag = message_parts.slice(1, message_parts.length).join(" ")
-			members[member] = tag
-			msg.reply("tag set!")
-			newTagRole(member, msg)
-			saveToFile("resurrected-data.json")
+			if(message_parts[1] === 'unlink'){
+				if(message_parts.length > 2){
+					//unlink a player_name
+					let tag = message_parts.slice(2, message_parts.length).join(" ")
+					let guild = msg.guild
+					if(guild != null){
+						let guildMember = guild.members.find(gMember => gMember.id == member)
+						if(guildMember != null && guildMember.hasPermission('ADMINISTRATOR')){
+							for(current_member in members){
+								if(members[current_member] === tag.toLowerCase()){
+									delete members[current_member]
+									newTagRole(current_member, msg)
+								}
+							}
+							msg.reply("tag unlinked!")
+							saveToFile("resurrected-data.json")
+						}
+						else{
+							msg.reply("you do not have permission to use this command!")
+						}
+					}
+					else{
+						msg.reply("please call this command in a server!")
+					}
+				}
+				else{
+					//unlink self
+					delete members[member]
+					msg.reply("tag unlinked!")
+					newTagRole(member, msg)
+				}
+			}
+			else{
+				let tag = message_parts.slice(1, message_parts.length).join(" ").toLowerCase()
+				if(!playerTagTaken(tag)){
+					members[member] = tag
+					msg.reply("tag set!")
+					newTagRole(member, msg)
+					saveToFile("resurrected-data.json")
+				}
+				else{
+					msg.reply("tag `"+tag+"` already linked to another account!\n\nUse `!tag unlink` to unlink your tag.")
+				}
+			}
 		}
 		else{
 			if(member in members){
-				msg.reply("your tag is currently set to "+members[member])
+				msg.reply("your tag is currently set to `"+members[member]+"`.")
 			}
 			else{
 				msg.reply("your tag is not currently set!\n\nUse `!tag <player>` to associate your account with your Smash Tag!")
