@@ -5,9 +5,41 @@ const fs = require('fs')
 const request = require('request')
 const cheerio = require('cheerio')
 const client = new Discord.Client()
+
 let members = {}
 let players = {}
 let max_points = 0
+
+try{
+	const data_file = fs.readFileSync('./resurrected-data.json', 'utf8')
+	try{
+		const data = JSON.parse(data_file)
+		try{
+			members = data.members
+		}
+		catch(err){
+			members = {}
+		}
+		try{
+			players = data.players
+		}
+		catch(err){
+			players = {}
+		}
+		try{
+			max_points = data.max_points
+		}
+		catch(err){
+			max_points = 0
+		}
+	}
+	catch(err){
+		console.error(err)
+	}
+}
+catch(err){
+	console.error(err)
+}
 
 const ranks = {
 	"Diamond": 0.995,
@@ -18,9 +50,39 @@ const ranks = {
 	"Unranked": 0
 }
 
-client.on('ready', () => {
-	console.log(`Logged in as ${client.user.tag}!`)
-})
+function overallRank(player_name, msg){
+	if(player_name in players){
+		let player = players[player_name]
+		let rank = player.rank
+		if(rank != undefined){
+			if(player.active){
+				msg.reply("`"+player_name+"` is rank "+rank+".")
+			}
+			else{
+				msg.reply("`"+player_name+"` is rank "+rank+" overall, but is currently inactive.")
+			}
+		}
+		else{
+			msg.reply("`"+player_name+"'s` rank has not been updated.")
+		}
+	}
+	else{
+		msg.reply("player `"+player_name+"` is not recognized.")
+	}
+}
+
+function saveToFile(filename){
+	let bundle = {}
+	bundle.members = members
+	bundle.players = players
+	bundle.max_points = max_points
+	try{
+		fs.writeFileSync(filename, JSON.stringify(bundle))
+	}
+	catch(err){
+		console.error(err)
+	}
+}
 
 function newTagRole(member, msg){
 	let guild = msg.guild
@@ -106,7 +168,9 @@ function updatePlayerData(retries, temp_players, callback){
 			request(player.url, {json: false}, (err, res, body) => {
 				const $ = cheerio.load(body)
 				let dashboard_values = $("div.panel-body").find("div.my-dashboard-values-sub")
-				if(dashboard_values.length > 0){
+				let dashboard_rankings = $("div.panel-body").find("div.my-dashboard-values-main:contains('out of')")
+				if(dashboard_values.length > 0 && dashboard_rankings.length > 0){
+					player.rank = parseInt(dashboard_rankings.text().trim().match(new RegExp('[0-9]+'))[0])
 					dashboard_values.each(function(i, elem){
 						if($(this).find("div:contains('Points')").length > 0){
 							player.points = parseInt($(this).children('div').eq(1).text().trim())
@@ -184,6 +248,7 @@ function updatePlayers(retries, callback){
 				temp_players[$(this).text()] = {
 					"name": $(this).text(),
 					"points": undefined,
+					"rank": undefined,
 					"active": false,
 					"url": "https://braacket.com" + $(this).attr('href'),
 					"updated": false,
@@ -196,7 +261,9 @@ function updatePlayers(retries, callback){
 	});
 }
 
-
+client.on('ready', () => {
+	console.log(`Logged in as ${client.user.tag}!`)
+})
 
 client.on('message', msg => {
 	let message_parts = msg.content.split(" ")
@@ -207,10 +274,48 @@ client.on('message', msg => {
 			members[member] = tag
 			msg.reply("tag set!")
 			newTagRole(member, msg)
+			saveToFile("resurrected-data.json")
 		}
 		else{
 			if(member in members){
 				msg.reply("your tag is currently set to "+members[member])
+			}
+			else{
+				msg.reply("your tag is not currently set!\n\nUse `!tag <player>` to associate your account with your Smash Tag!")
+			}
+		}
+	}
+
+	if(message_parts[0] === '!rank'){
+		if(message_parts.length > 1){
+			if(message_parts[message_parts.length-1] === 'overall'){
+				if(message_parts.length == 2){
+					//overall for caller
+					if(member in members){
+						let player_name = members[member]
+						overallRank(player_name, msg)
+					}
+					else{
+						msg.reply("your tag is not currently set!\n\nUse `!tag <player>` to associate your account with your Smash Tag!")
+					}
+				}
+				else{
+					//overall for playername
+					let player_name = message_parts.slice(1, message_parts.length - 1).join(" ")
+					overallRank(player_name, msg)
+				}
+			}
+			else{
+				//active rank for playername
+				let player_name = message_parts.slice(1, message_parts.length).join(" ")
+				overallRank(player_name, msg)
+			}
+		}
+		else{
+			//active rank for caller
+			if(member in members){
+				let player_name = members[member]
+				overallRank(player_name, msg)
 			}
 			else{
 				msg.reply("your tag is not currently set!\n\nUse `!tag <player>` to associate your account with your Smash Tag!")
@@ -236,6 +341,7 @@ client.on('message', msg => {
 					m += un_updated.join(", ") + "."
 					msg.reply(m)
 				}
+				saveToFile("resurrected-data.json")
 			})
 		}
 	}
@@ -243,10 +349,7 @@ client.on('message', msg => {
 
 client.on('guildMemberAdd', member => {
 	if (!(member.user.id in members)){
-		member.send('welcome to Resurrected Smash! Use !tag <player name> to associate your account with your Smash Tag!')
-	}
-	else{
-		member.send('welcome back!')
+		member.send('welcome to Resurrected Smash!\n\nUse `!tag <player>` to associate your account with your Smash Tag!')
 	}
 })
 

@@ -1,3 +1,4 @@
-
 .env
 .DS_Store
+resurrected-data.json
+/node_modules
