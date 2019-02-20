@@ -251,4 +251,3 @@ client.on('guildMemberAdd', member => {
 })
 
 client.login(process.env.BOT_TOKEN)
-require('http').createServer().listen(3000)
