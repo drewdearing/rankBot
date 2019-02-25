@@ -42,6 +42,12 @@ That's all that's required to start pulling data! To fill your league's database
 !update
 ```
 
+If you want to PERMANENTLY delete your league to free up the league_id, use `league delete`
+
+```
+!league delete
+```
+
 ### Managing Discord Members' tags
 
 At any time, a discord server member can add associate a player name with their account by using the `tag`.
