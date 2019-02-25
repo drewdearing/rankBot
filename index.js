@@ -17,45 +17,6 @@ admin.initializeApp({
 const db = admin.firestore()
 var FieldValue = admin.firestore.FieldValue;
 
-let members = {}
-let players = {}
-let max_points = 0
-
-try {
-    const data_file = fs.readFileSync('./resurrected-data.json', 'utf8')
-    try {
-        const data = JSON.parse(data_file)
-        try {
-            members = data.members
-        } catch (err) {
-            members = {}
-        }
-        try {
-            players = data.players
-        } catch (err) {
-            players = {}
-        }
-        try {
-            max_points = data.max_points
-        } catch (err) {
-            max_points = 0
-        }
-    } catch (err) {
-        console.error(err)
-    }
-} catch (err) {
-    console.error(err)
-}
-
-const ranks = {
-    "Diamond": 0.995,
-    "Platinum": 0.95,
-    "Gold": 0.75,
-    "Silver": 0.4,
-    "Bronze": 0,
-    "Unranked": 0
-}
-
 function overallRank(player_name, playersData, msg) {
     if (player_name.toLowerCase() in playersData) {
         let player = playersData[player_name.toLowerCase()]
@@ -74,87 +35,92 @@ function overallRank(player_name, playersData, msg) {
     }
 }
 
-function newTagRole(member, msg) {
-    let guild = msg.guild
-    if (guild != null) {
-        if (member in members) {
-            let player_name = members[member]
-            let guildMember = guild.members.find(gMember => gMember.id == member)
-            if (guildMember != null) {
-                if (player_name in players && players[player_name].active) {
-                    let player = players[player_name]
-                    if (player.active) {
-                        let new_role = "Bronze"
-                        if (player.points >= ranks.Silver * max_points)
-                            new_role = "Silver"
-                        if (player.points >= ranks.Gold * max_points)
-                            new_role = "Gold"
-                        if (player.points >= ranks.Platinum * max_points)
-                            new_role = "Platinum"
-                        if (player.points >= ranks.Diamond * max_points)
-                            new_role = "Diamond"
-                        guildMember.addRole(guild.roles.find(role => role.name === new_role)).then(() => {
-                            msg.reply("your role will now reflect your ranking if you are currently active.")
-                            guildMember.removeRoles(guild.roles.filter(role => role.name != new_role && role.name in ranks)).catch(console.log)
+function newTagRole(member_id, guild, league_id, membersID, playersID) {
+    //max_points, ranks, playersData
+    let membersDB = db.collection('members').doc(membersID)
+    let playersDB = db.collection('players').doc(playersID)
+    let leagueDB = db.collection('leagues').doc(league_id)
+    Promise.all([membersDB.get(), playersDB.get(), leagueDB.get()]).then(function(values){
+        let membersDoc = values[0]
+        let playersDoc = values[1]
+        let leagueDoc = values[2]
+        if(membersDoc.exists && playersDoc.exists && leagueDoc.exists){
+            let ranks = leagueDoc.data().ranks
+            let max_points = leagueDoc.data().max_points
+            let membersData = membersDoc.data()
+            let playersData = playersDoc.data()
+            if(member_id in membersData) {
+                let player_name = membersData[member_id]
+                let guildMember = guild.members.find(gMember => gMember.id == member_id)
+                if (guildMember != null) {
+                    let player = {active: false, points: 0}
+                    let new_role = null
+                    if (player_name in playersData) {
+                        player = playersData[player_name]
+                    }
+                    for(rank in ranks){
+                        let currentRank = ranks[rank]
+                        if(currentRank.active_required){
+                            if(player.active && player.points >= currentRank.percentile * max_points){
+                                new_role = currentRank.role
+                            }
+                        } else if(player.points >= currentRank.percentile * max_points){
+                            new_role = currentRank.role
+                        }
+                    }
+                    if(new_role != null){
+                        guildMember.addRole(guild.roles.find(role => role.name.toLowerCase() === new_role)).then(() => {
+                            guildMember.removeRoles(guild.roles.filter(role => role.name.toLowerCase() != new_role && ranks.map(rank=> rank.role).includes(role.name.toLowerCase()))).catch(console.log)
                         }).catch(console.log)
                     }
-                } else {
-                    let new_role = "Unranked"
-                    guildMember.addRole(guild.roles.find(role => role.name === new_role)).then(() => {
-                        msg.reply("you need to attend a tournament within the last 30 days to recieve a ranking!")
-                        guildMember.removeRoles(guild.roles.filter(role => role.name != new_role && role.name in ranks)).catch(console.log)
-                    }).catch(console.log)
                 }
             }
-        } else {
-            let guildMember = guild.members.find(gMember => gMember.id == member)
-            if (guildMember != null) {
-                let new_role = "Unranked"
-                guildMember.addRole(guild.roles.find(role => role.name === new_role)).then(() => {
-                    guildMember.removeRoles(guild.roles.filter(role => role.name != new_role && role.name in ranks)).catch(console.log)
-                }).catch(console.log)
-            }
         }
-    } else {
-        msg.reply("to update server roles, please use this command in a server!")
-    }
+    })
 }
 
-function updateRoles(msg) {
-    let guild = msg.guild
-
-    if (guild != null) {
-        for (member_id in members) {
-            let player_name = members[member_id]
-            let guildMember = guild.members.find(gMember => gMember.id == member_id)
-            if (guildMember != null) {
-                if (player_name in players && players[player_name].active) {
-                    let player = players[player_name]
-                    if (player.active) {
-                        let new_role = "Bronze"
-                        if (player.points >= ranks.Silver * max_points)
-                            new_role = "Silver"
-                        if (player.points >= ranks.Gold * max_points)
-                            new_role = "Gold"
-                        if (player.points >= ranks.Platinum * max_points)
-                            new_role = "Platinum"
-                        if (player.points >= ranks.Diamond * max_points)
-                            new_role = "Diamond"
-                        guildMember.addRole(guild.roles.find(role => role.name === new_role)).then(() => {
-                            guildMember.removeRoles(guild.roles.filter(role => role.name != new_role && role.name in ranks)).catch(console.log)
+function updateRoles(guild, league_id, membersID, playersID) {
+    //max_points, ranks, playersData
+    let membersDB = db.collection('members').doc(membersID)
+    let playersDB = db.collection('players').doc(playersID)
+    let leagueDB = db.collection('leagues').doc(league_id)
+    Promise.all([membersDB.get(), playersDB.get(), leagueDB.get()]).then(function(values){
+        let membersDoc = values[0]
+        let playersDoc = values[1]
+        let leagueDoc = values[2]
+        if(membersDoc.exists && playersDoc.exists && leagueDoc.exists){
+            let ranks = leagueDoc.data().ranks
+            let max_points = leagueDoc.data().max_points
+            let membersData = membersDoc.data()
+            let playersData = playersDoc.data()
+            for (member_id in membersData) {
+                let player_name = membersData[member_id]
+                let guildMember = guild.members.find(gMember => gMember.id == member_id)
+                if (guildMember != null) {
+                    let player = {active: false, points: 0}
+                    let new_role = null
+                    if (player_name in playersData) {
+                        player = playersData[player_name]
+                    }
+                    for(rank in ranks){
+                        let currentRank = ranks[rank]
+                        if(currentRank.active_required){
+                            if(player.active && player.points >= currentRank.percentile * max_points){
+                                new_role = currentRank.role
+                            }
+                        } else if(player.points >= currentRank.percentile * max_points){
+                            new_role = currentRank.role
+                        }
+                    }
+                    if(new_role != null){
+                        guildMember.addRole(guild.roles.find(role => role.name.toLowerCase() === new_role)).then(() => {
+                            guildMember.removeRoles(guild.roles.filter(role => role.name.toLowerCase() != new_role && ranks.map(rank=> rank.role).includes(role.name.toLowerCase()))).catch(console.log)
                         }).catch(console.log)
                     }
-                } else {
-                    let new_role = "Unranked"
-                    guildMember.addRole(guild.roles.find(role => role.name === new_role)).then(() => {
-                        guildMember.removeRoles(guild.roles.filter(role => role.name != new_role && role.name in ranks)).catch(console.log)
-                    }).catch(console.log)
                 }
             }
         }
-    } else {
-        msg.reply("to update server roles, please use this command in a server!")
-    }
+    })
 }
 
 function updateBraacketPlayer(player) {
@@ -172,9 +138,6 @@ function updateBraacketPlayer(player) {
                         dashboard_values.each(function(i, elem) {
                             if ($(this).find("div:contains('Points')").length > 0) {
                                 player.points = parseInt($(this).children('div').eq(1).text().trim())
-                                if (player.points > max_points) {
-                                    max_points = player.points
-                                }
                             }
                             if ($(this).find("div:contains('Activity requirement')").length > 0) {
                                 player.active = $(this).find("span").length <= 0
@@ -192,7 +155,7 @@ function updateBraacketPlayer(player) {
     })
 }
 
-function updatePlayerData(service, playersID, timeout, temp_players, callback) {
+function updatePlayerData(service, playersID, leagueID, timeout, temp_players, callback) {
     if (service === 'braacket') {
         timoutPromise(timeout, function(resolve, reject, endTime) {
             Promise.all(Object.values(temp_players).map(updateBraacketPlayer)).then(function() {
@@ -202,11 +165,21 @@ function updatePlayerData(service, playersID, timeout, temp_players, callback) {
             })
         }).then(function() {
             let playersDB = db.collection('players').doc(playersID)
+            let leagueDB = db.collection('leagues').doc(leagueID)
             playersDB.set(temp_players)
+            let max_points = 0
+            for(p in temp_players){
+                if(temp_players[p].points > max_points){
+                    max_points = temp_players[p].points
+                }
+            }
+            leagueDB.update({
+                max_points: max_points
+            })
             callback(true)
         }).catch(function(remainingTime) {
             if (remainingTime > 0) {
-                updatePlayerData(service, playersID, remainingTime, temp_players, callback)
+                updatePlayerData(service, playersID, leagueID, remainingTime, temp_players, callback)
             } else {
                 callback(false)
             }
@@ -270,7 +243,7 @@ function braacketGetPages(id, rows) {
     })
 }
 
-function updatePlayers(service, id, playersID, timeout, callback) {
+function updatePlayers(service, id, playersID, leagueID, timeout, callback) {
     if (service === 'braacket') {
         timoutPromise(timeout, function(resolve, reject, endTime) {
             braacketGetPages(id, 500).then(function(values) {
@@ -302,10 +275,10 @@ function updatePlayers(service, id, playersID, timeout, callback) {
                 reject(endTime - (new Date()).getTime())
             })
         }).then(function(values) {
-            updatePlayerData(service, playersID, values.remainingTime, values.temp_players, callback)
+            updatePlayerData(service, playersID, leagueID, values.remainingTime, values.temp_players, callback)
         }).catch(function(remainingTime) {
             if (remainingTime > 0) {
-                updatePlayers(service, id, playersID, remainingTime, callback)
+                updatePlayers(service, id, playersID, leagueID, remainingTime, callback)
             } else {
                 callback(false)
             }
@@ -342,64 +315,71 @@ function tag_command(msg, message_parts) {
         let guildDB = db.collection('guilds').doc(guild_id)
         guildDB.get().then((guildDoc) => {
             if (guildDoc.exists) {
+                let league_id = guildDoc.data().league_id
                 let membersID = guildDoc.data().members
                 let membersDB = db.collection('members').doc(membersID)
                 membersDB.get().then((membersDoc) => {
-                    if (message_parts.length > 1) {
-                        if (message_parts[1] === 'unlink') {
-                            if (message_parts.length > 2) {
-                                //unlink a player_name
-                                let tag = message_parts.slice(2, message_parts.length).join(" ")
-                                let guildMember = guild.members.find(gMember => gMember.id == member)
-                                if (guildMember != null && guildMember.hasPermission('ADMINISTRATOR')) {
-                                    let memberData = membersDoc.data()
-                                    let removed = []
-                                    for (m in memberData) {
-                                        if (memberData[m] === tag) {
-                                            memberData[m] = FieldValue.delete()
-                                            removed.push(m)
-                                        }
-                                    }
+                    let leagueDB = db.collection('leagues').doc(league_id)
+                    leagueDB.get().then((leagueDoc)=>{
+                        if(leagueDoc.exists){
+                            let playersID = leagueDoc.data().players
+                            if (message_parts.length > 1) {
+                                if (message_parts[1] === 'unlink') {
+                                    if (message_parts.length > 2) {
+                                        //unlink a player_name
+                                        let tag = message_parts.slice(2, message_parts.length).join(" ")
+                                        let guildMember = guild.members.find(gMember => gMember.id == member)
+                                        if (guildMember != null && guildMember.hasPermission('ADMINISTRATOR')) {
+                                            let memberData = membersDoc.data()
+                                            let removed = []
+                                            for (m in memberData) {
+                                                if (memberData[m] === tag) {
+                                                    memberData[m] = FieldValue.delete()
+                                                    removed.push(m)
+                                                }
+                                            }
 
-                                    membersDB.update(memberData).then(function() {
-                                        for (r in removed) {
-                                            newTagRole(removed[r], msg)
+                                            membersDB.update(memberData).then(function() {
+                                                for (r in removed) {
+                                                    newTagRole(removed[r], guild, league_id, membersID, playersID)
+                                                }
+                                                msg.reply("tag unlinked!")
+                                            })
+                                        } else {
+                                            msg.reply("you do not have permission to use this command!")
                                         }
-                                        msg.reply("tag unlinked!")
-                                    })
+                                    } else {
+                                        //unlink self
+                                        let memberData = {}
+                                        memberData[member] = FieldValue.delete()
+                                        membersDB.update(memberData).then(function() {
+                                            msg.reply("tag unlinked!")
+                                            newTagRole(member, guild, league_id, membersID, playersID)
+                                        })
+                                    }
                                 } else {
-                                    msg.reply("you do not have permission to use this command!")
+                                    let tag = message_parts.slice(1, message_parts.length).join(" ").toLowerCase()
+                                    if (!playerTagTaken(tag, membersDoc.data())) {
+                                        let memberData = {}
+                                        memberData[member] = tag
+                                        membersDB.update(memberData).then(function() {
+                                            msg.reply("tag set!")
+                                            newTagRole(member, guild, league_id, membersID, playersID)
+                                        })
+                                    } else {
+                                        msg.reply("tag `" + tag + "` already linked to another account!\n\nUse `!tag unlink` to unlink your tag.")
+                                    }
                                 }
                             } else {
-                                //unlink self
-                                let memberData = {}
-                                memberData[member] = FieldValue.delete()
-                                membersDB.update(memberData).then(function() {
-                                    msg.reply("tag unlinked!")
-                                    newTagRole(member, msg)
-                                })
-                            }
-                        } else {
-                            let tag = message_parts.slice(1, message_parts.length).join(" ").toLowerCase()
-                            if (!playerTagTaken(tag, membersDoc.data())) {
-                                let memberData = {}
-                                memberData[member] = tag
-                                membersDB.update(memberData).then(function() {
-                                    msg.reply("tag set!")
-                                    newTagRole(member, msg)
-                                })
-                            } else {
-                                msg.reply("tag `" + tag + "` already linked to another account!\n\nUse `!tag unlink` to unlink your tag.")
+                                let memberData = membersDoc.data()
+                                if (member in memberData) {
+                                    msg.reply("your tag is currently set to `" + memberData[member] + "`.")
+                                } else {
+                                    msg.reply("your tag is not currently set!\n\nUse `!tag <player>` to associate your account with your Smash Tag!")
+                                }
                             }
                         }
-                    } else {
-                        let memberData = membersDoc.data()
-                        if (member in memberData) {
-                            msg.reply("your tag is currently set to `" + memberData[member] + "`.")
-                        } else {
-                            msg.reply("your tag is not currently set!\n\nUse `!tag <player>` to associate your account with your Smash Tag!")
-                        }
-                    }
+                    })
                 })
             } else {
                 msg.reply("your server is not initialized with a league!\n\nUse `!league set` to get started!")
@@ -444,7 +424,7 @@ function league_command(msg, message_parts) {
                                     service: "",
                                     players: playersDB.id,
                                     id: "",
-                                    ranks: {}
+                                    ranks: []
                                 })
                             }
                         })
@@ -480,58 +460,74 @@ function league_command(msg, message_parts) {
                             } else if (message_parts[1] === 'ranks') {
                                 if (message_parts.length > 2) {
                                     if (message_parts[2] === 'add') {
-                                        if (message_parts.length >= 5) {
-                                            let name = message_parts.slice(3, message_parts.length - 1).join(" ")
-                                            let percentile = null
-                                            try {
-                                                percentile = parseFloat(message_parts[message_parts.length - 1])
-                                            } catch (err) {
+                                        if (message_parts.length >= 6) {
+                                            let active_arg = message_parts[message_parts.length-1].toLowerCase()
+                                            let active_required = null
+                                            if(active_arg === 'true' || active_arg === 'false'){
+                                                active_required = (active_arg === 'true')
+                                            }
+                                            else{
+                                                msg.reply("activity requirement must be true or false!")
+                                            }
+                                            let name = message_parts.slice(3, message_parts.length - 2).join(" ").toLowerCase()
+                                            let percentile = parseFloat(message_parts[message_parts.length - 2])
+                                            if(isNaN(percentile)){
                                                 msg.reply("percentile must be a number!")
                                             }
-
-                                            if (name != null && percentile != null) {
+                                            if (name != null && percentile != null && !isNaN(percentile) && active_required != null) {
                                                 let currentRanks = leagueDoc.data().ranks
-                                                if (name.toLowerCase() in currentRanks) {
+                                                if (currentRanks.filter(rank => rank.role === name).length > 0) {
                                                     msg.reply("this rank already exists!\n\nUse `!league ranks remove <name>` to remove a rank!")
                                                 } else {
                                                     if (percentile < 0) {
                                                         msg.reply("percentile must be positive.")
                                                     } else {
-                                                        currentRanks[name.toLowerCase()] = percentile
+                                                        currentRanks.push({role: name, percentile: percentile, active_required: active_required})
+                                                        currentRanks.sort(function(a,b) {
+                                                            if(a.percentile > b.percentile || (a.active_required && !b.active_required))
+                                                                return 1
+                                                            if(b.percentile > a.percentile || (b.active_required && !a.active_required))
+                                                                return -1
+                                                            return 0
+                                                        })
                                                         leagueDB.update({
                                                             ranks: currentRanks
                                                         })
                                                         msg.reply("rank added!")
                                                     }
                                                 }
-                                            } else {
-                                                msg.reply("there was a problem creating new rank!")
                                             }
-
                                         } else {
-                                            msg.reply("this command requires 2 arguments.")
+                                            msg.reply("this command requires 3 arguments.")
                                         }
                                     } else if (message_parts[2] === 'remove') {
                                         if (message_parts.length >= 4) {
-                                            let name = message_parts.slice(3, message_parts.length).join(" ")
-                                            let currentRanks = leagueDoc.data().ranks
-                                            if (name.toLowerCase() in currentRanks) {
-                                                delete currentRanks[name.toLowerCase()]
+                                            if(message_parts[3] == 'all' && message_parts.length == 4){
                                                 leagueDB.update({
-                                                    ranks: currentRanks
+                                                    ranks: []
                                                 })
+                                                msg.reply("all ranks removed.")
+                                            } else{
+                                                let name = message_parts.slice(3, message_parts.length).join(" ").toLowerCase()
+                                                let currentRanks = leagueDoc.data().ranks
+                                                let nameMatches = currentRanks.filter(rank => rank.role === name)
+                                                if (nameMatches.length > 0) {
+                                                    leagueDB.update({
+                                                        ranks: currentRanks.filter(rank => rank.role != name)
+                                                    })
+                                                }
+                                                msg.reply("rank removed.")
                                             }
-                                            msg.reply("rank removed.")
                                         } else {
                                             msg.reply("please provide a rank name.")
                                         }
                                     }
                                 } else {
-                                    let currentRanks = Object.keys(leagueDoc.data().ranks)
+                                    let currentRanks = leagueDoc.data().ranks
                                     if (currentRanks.length > 0) {
-                                        msg.reply("the current ranks are " + currentRanks.join(", "))
+                                        msg.reply("the current ranks are " + currentRanks.map(function(rank){return rank.role}).join(", "))
                                     } else {
-                                        msg.reply("there are no ranks associated with `" + league_id + "`\n\nUse `!league ranks add <name> <percentile>` to add new ranks")
+                                        msg.reply("there are no ranks associated with `" + league_id + "`\n\nUse `!league ranks add <name> <percentile> <active requirement>` to add new ranks")
                                     }
                                 }
                             }
@@ -559,6 +555,7 @@ function update_command(msg, message_parts) {
                     msg.reply("your server is not initialized with a league!\n\nUse `!league set` to get started!")
                 } else {
                     let league_id = guildDoc.data().league_id
+                    let membersID = guildDoc.data().members
                     let leagueDB = db.collection('leagues').doc(league_id)
                     leagueDB.get().then((leagueDoc) => {
                         if (!leagueDoc.exists) {
@@ -568,10 +565,10 @@ function update_command(msg, message_parts) {
                             let id = leagueDoc.data().id
                             let service = leagueDoc.data().service
                             if (id != '' && service != '') {
-                                updatePlayers(service, id, playersID, 300000, (all_updated) => {
+                                updatePlayers(service, id, playersID, league_id, 300000, (all_updated) => {
                                     if (all_updated) {
                                         msg.reply("data updated.")
-                                        updateRoles(msg)
+                                        updateRoles(guild, league_id, membersID, playersID)
                                     } else {
                                         msg.reply("unable to update service data.")
                                     }
@@ -590,7 +587,6 @@ function update_command(msg, message_parts) {
 }
 
 function rank_command(msg, message_parts) {
-    console.log("rank_command")
     let member = msg.author.id
     let guild = msg.guild
     if (guild != null) {
@@ -612,7 +608,6 @@ function rank_command(msg, message_parts) {
                             let playersID = leagueDoc.data().players
                             let playersDB = db.collection('players').doc(playersID)
                             playersDB.get().then((playersDoc) => {
-                                console.log(message_parts)
                                 if (message_parts.length > 1) {
                                     //active rank for playername
                                     let player_name = message_parts.slice(1, message_parts.length).join(" ")
