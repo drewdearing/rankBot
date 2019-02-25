@@ -7,7 +7,7 @@ const request = require('request')
 const cheerio = require('cheerio')
 
 const client = new Discord.Client()
-var serviceAccount = require('./rankbot-1ada2-firebase-adminsdk-t3q8e-d1343deb01.json')
+var serviceAccount = JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT)
 
 admin.initializeApp({
     credential: admin.credential.cert(serviceAccount),
