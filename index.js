@@ -356,47 +356,67 @@ function tag_command(msg, message_parts) {
                                     //unlink a player_name
                                     let tag = message_parts.slice(2, message_parts.length).join(" ")
                                     if (hasModPermission(member, guild)) {
-                                        let memberData = membersDoc.data()
-                                        let removed = []
-                                        for (m in memberData) {
-                                            if (memberData[m] === tag) {
-                                                memberData[m] = FieldValue.delete()
-                                                removed.push(m)
-                                            }
-                                        }
-                                        membersDB.update(memberData).then(function () {
-                                            if (playersID != null) {
-                                                for (r in removed) {
-                                                    newTagRole(removed[r], guild, league_id, membersID, playersID)
+                                        if(membersDoc.exists){
+                                            let memberData = membersDoc.data()
+                                            let removed = []
+                                            for (m in memberData) {
+                                                if (memberData[m] === tag) {
+                                                    memberData[m] = FieldValue.delete()
+                                                    removed.push(m)
                                                 }
                                             }
+                                            membersDB.update(memberData).then(function () {
+                                                if (playersID != null) {
+                                                    for (r in removed) {
+                                                        newTagRole(removed[r], guild, league_id, membersID, playersID)
+                                                    }
+                                                }
+                                                msg.reply("tag unlinked!")
+                                            })
+                                        }
+                                        else{
                                             msg.reply("tag unlinked!")
-                                        })
+                                        }
                                     } else {
                                         msg.reply("you do not have permission to use this command!")
                                     }
                                 } else {
                                     //unlink self
-                                    let memberData = {}
-                                    memberData[member] = FieldValue.delete()
-                                    membersDB.update(memberData).then(function () {
+                                    if(membersDoc.exist){
+                                        let memberData = {}
+                                        memberData[member] = FieldValue.delete()
+                                        membersDB.update(memberData).then(function () {
+                                            msg.reply("tag unlinked!")
+                                            if (playersID != null) {
+                                                newTagRole(member, guild, league_id, membersID, playersID)
+                                            }
+                                        })
+                                    }
+                                    else{
                                         msg.reply("tag unlinked!")
-                                        if (playersID != null) {
-                                            newTagRole(member, guild, league_id, membersID, playersID)
-                                        }
-                                    })
+                                    }
                                 }
                             } else {
                                 let tag = message_parts.slice(1, message_parts.length).join(" ").toLowerCase()
                                 if (!playerTagTaken(tag, membersDoc.data(), member)) {
                                     let memberData = {}
                                     memberData[member] = tag
-                                    membersDB.update(memberData).then(function () {
-                                        msg.reply("tag set!")
-                                        if (playersID != null) {
-                                            newTagRole(member, guild, league_id, membersID, playersID)
-                                        }
-                                    })
+                                    if(membersDoc.exists){
+                                        membersDB.update(memberData).then(function () {
+                                            msg.reply("tag set!")
+                                            if (playersID != null) {
+                                                newTagRole(member, guild, league_id, membersID, playersID)
+                                            }
+                                        })
+                                    }
+                                    else{
+                                        membersDB.set(memberData).then(function() {
+                                            msg.reply("tag set!")
+                                            if (playersID != null) {
+                                                newTagRole(member, guild, league_id, membersID, playersID)
+                                            }
+                                        })
+                                    }
                                 } else {
                                     msg.reply("tag `" + tag + "` already linked to another account!\n\nUse `!tag unlink` to unlink your tag.")
                                 }
