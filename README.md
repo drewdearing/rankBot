@@ -132,4 +132,4 @@ To unmod a member, the owner or any mod can call `league mode remove`
 
 ## Authors
 
-* **Drew Dearing** - *author* - [drewdearing](https://github.com/drewdearing)
+* **Drew Dearing** - *developer* - [drewdearing](https://github.com/drewdearing)
