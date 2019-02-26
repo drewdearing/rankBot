@@ -50,7 +50,7 @@ If you want to PERMANENTLY delete your league to free up the league_id, use `lea
 
 ### Managing Discord Members' tags
 
-At any time, a discord server member can add associate a player name with their account by using the `tag`.
+At any time, a discord server member can add associate a player name with their account by using `tag`.
 
 ```
 !tag <player name>
@@ -118,7 +118,7 @@ If you want other discord users to be able to modify the sensitive settings in y
 !league mod add @Member
 ```
 
-To unmod a member, the owner or any mod can call `league mode remove`
+To unmod a member, the owner or any mod can call `league mod remove`
 
 ```
 !league mod remove @Member
