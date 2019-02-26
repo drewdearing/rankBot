@@ -36,7 +36,7 @@ If you are not the owner of this league, then you will have to rely on the owner
 !league service braacket <braacket_id>
 ```
 
-That's all that's required to start pulling data! To fill your league's database with the current ranking data using `update`.
+That's all that's required to start pulling data! To fill your league's database with the current ranking data use `update`.
 
 ```
 !update
