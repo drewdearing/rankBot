@@ -72,9 +72,12 @@ function newTagRole(member_id, guild, league_id, membersID, playersID) {
                         }
                     }
                     if (new_role != null) {
-                        guildMember.addRole(guild.roles.find(role => role.name.toLowerCase() === new_role)).then(() => {
-                            guildMember.removeRoles(guild.roles.filter(role => role.name.toLowerCase() != new_role && ranks.map(rank => rank.role).includes(role.name.toLowerCase()))).catch(console.log)
-                        }).catch(console.log)
+                        let roleToAdd = guild.roles.find(role => role.name.toLowerCase() === new_role)
+                        if(roleToAdd != null){
+                            guildMember.addRole().then(() => {
+                                guildMember.removeRoles(guild.roles.filter(role => role.name.toLowerCase() != new_role && ranks.map(rank => rank.role).includes(role.name.toLowerCase()))).catch(console.log)
+                            }).catch(console.log)
+                        }
                     }
                 }
             }
@@ -119,9 +122,12 @@ function updateRoles(guild, league_id, membersID, playersID) {
                         }
                     }
                     if (new_role != null) {
-                        guildMember.addRole(guild.roles.find(role => role.name.toLowerCase() === new_role)).then(() => {
-                            guildMember.removeRoles(guild.roles.filter(role => role.name.toLowerCase() != new_role && ranks.map(rank => rank.role).includes(role.name.toLowerCase()))).catch(console.log)
-                        }).catch(console.log)
+                        let roleToAdd = guild.roles.find(role => role.name.toLowerCase() === new_role)
+                        if(roleToAdd != null){
+                            guildMember.addRole(roleToAdd).then(() => {
+                                guildMember.removeRoles(guild.roles.filter(role => role.name.toLowerCase() != new_role && ranks.map(rank => rank.role).includes(role.name.toLowerCase()))).catch(console.log)
+                            }).catch(console.log)
+                        }
                     }
                 }
             }
@@ -753,18 +759,23 @@ function rank_command(msg, message_parts) {
                             let playersID = leagueDoc.data().players
                             let playersDB = db.collection('players').doc(playersID)
                             playersDB.get().then((playersDoc) => {
-                                if (message_parts.length > 1) {
-                                    //active rank for playername
-                                    let player_name = message_parts.slice(1, message_parts.length).join(" ")
-                                    overallRank(player_name, playersDoc.data(), msg)
-                                } else {
-                                    //active rank for caller
-                                    if (member in membersDoc.data()) {
-                                        let player_name = membersDoc.data()[member]
+                                if(playersDoc.exists){
+                                    if (message_parts.length > 1) {
+                                        //active rank for playername
+                                        let player_name = message_parts.slice(1, message_parts.length).join(" ")
                                         overallRank(player_name, playersDoc.data(), msg)
                                     } else {
-                                        msg.reply("your tag is not currently set!\n\nUse `!tag <player>` to associate your account with your player name!")
+                                        //active rank for caller
+                                        if (membersDoc.exists && member in membersDoc.data()) {
+                                            let player_name = membersDoc.data()[member]
+                                            overallRank(player_name, playersDoc.data(), msg)
+                                        } else {
+                                            msg.reply("your tag is not currently set!\n\nUse `!tag <player>` to associate your account with your player name!")
+                                        }
                                     }
+                                }
+                                else{
+                                    msg.reply("There are no players in your league!\n\nUse `!update` to pull data.")
                                 }
                             })
                         })
