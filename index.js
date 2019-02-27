@@ -601,7 +601,13 @@ function league_command(msg, message_parts) {
                     } else {
                         if (message_parts.length > 1) {
                             if (message_parts[1] === 'update' && message_parts.length == 2) {
-                                update_command(msg, guild, msg.channel, guildDoc, leagueDoc)
+                                let currentMods = leagueDoc.data().mod
+                                let ownerID = leagueDoc.data().owner
+                                if (member == ownerID || currentMods.includes(member)) {
+                                    update_command(msg, guild, msg.channel, guildDoc, leagueDoc)
+                                } else {
+                                    msg.reply("you do not have permission to use this command!")
+                                }
                             } else if (message_parts[1] === 'delete') {
                                 if (message_parts.length == 2) {
                                     let ownerID = leagueDoc.data().owner
