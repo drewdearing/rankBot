@@ -36,10 +36,10 @@ If you are not the owner of this league, then you will have to rely on the owner
 !league service braacket <braacket_id>
 ```
 
-That's all that's required to start pulling data! To fill your league's database with the current ranking data use `update`.
+That's all that's required to start pulling data! To fill your league's database with the current ranking data use `league update`.
 
 ```
-!update
+!league update
 ```
 
 If you want to PERMANENTLY delete your league to free up the league_id, use `league delete`
@@ -106,9 +106,17 @@ Roles can also be removed using `league ranks remove`
 !league ranks remove <role name>
 ```
 
-Once you have your role rules to your liking, you can call `update` to update the roles of all members who have claimed a tag.
+Once you have your role rules to your liking, you can call `league ranks update` to update the roles of all members who have claimed a tag.
 
-Claiming and unclaiming tags will automatically update that individual's role.
+```
+!league ranks update
+```
+
+Claiming and unclaiming tags will automatically update that individual's role, but players can update their role anytime using `rank update`
+
+```
+!rank update
+```
 
 ### Adding mods to your league
 
