@@ -17,15 +17,16 @@ admin.initializeApp({
 const db = admin.firestore()
 var FieldValue = admin.firestore.FieldValue;
 
-function overallRank(player_name, playersData, msg) {
+function overallRank(player_name, playersData, leagueData, msg) {
     if (player_name.toLowerCase() in playersData) {
+        let total_players = leagueData.total_players
         let player = playersData[player_name.toLowerCase()]
         let rank = player.rank
         if (rank != undefined) {
             if (player.active) {
-                msg.reply("`" + player.name + "` is rank " + rank + ".")
+                msg.reply("`" + player.name + "` is rank " + rank + " of "+total_players+".")
             } else {
-                msg.reply("`" + player.name + "` is rank " + rank + " overall, but is currently inactive.")
+                msg.reply("`" + player.name + "` is rank " + rank + " of "+total_players+" overall, but is currently inactive.")
             }
         } else {
             msg.reply("`" + player.name + "'s` rank has not been updated.")
@@ -74,7 +75,7 @@ function newTagRole(member_id, guild, league_id, membersID, playersID) {
                     if (new_role != null) {
                         let roleToAdd = guild.roles.find(role => role.name.toLowerCase() === new_role)
                         if(roleToAdd != null){
-                            guildMember.addRole().then(() => {
+                            guildMember.addRole(roleToAdd).then(() => {
                                 guildMember.removeRoles(guild.roles.filter(role => role.name.toLowerCase() != new_role && ranks.map(rank => rank.role).includes(role.name.toLowerCase()))).catch(console.log)
                             }).catch(console.log)
                         }
@@ -86,7 +87,6 @@ function newTagRole(member_id, guild, league_id, membersID, playersID) {
 }
 
 function updateRoles(guild, league_id, membersID, playersID) {
-    //max_points, ranks, playersData
     let membersDB = db.collection('members').doc(membersID)
     let playersDB = db.collection('players').doc(playersID)
     let leagueDB = db.collection('leagues').doc(league_id)
@@ -137,7 +137,7 @@ function updateRoles(guild, league_id, membersID, playersID) {
 
 function updateBraacketPlayer(player) {
     return new Promise((resolve, reject) => {
-        if (!player.updated) {
+        if (!player.updated) {          
             request(player.url, {
                 json: false
             }, (err, res, body) => {
@@ -158,20 +158,32 @@ function updateBraacketPlayer(player) {
                         player.updated = true
                         resolve(player)
                     }
+                    else{
+                        reject(player)
+                    }
                 }
-                reject(player)
+                else{
+                    reject(player)
+                }
             })
         } else {
             resolve(player)
         }
+    }).catch(function(p_err){
+        return p_err
     })
 }
 
 function updatePlayerData(service, playersID, leagueID, timeout, temp_players, callback) {
     if (service === 'braacket') {
         timoutPromise(timeout, function (resolve, reject, endTime) {
-            Promise.all(Object.values(temp_players).map(updateBraacketPlayer)).then(function () {
-                resolve()
+            Promise.all(Object.values(temp_players).map(updateBraacketPlayer)).then(function (values) {
+                if(values.filter(p => !p.updated).length > 0){
+                    reject(endTime - (new Date()).getTime())
+                }
+                else{
+                    resolve()
+                }
             }).catch(function (err) {
                 reject(endTime - (new Date()).getTime())
             })
@@ -186,7 +198,8 @@ function updatePlayerData(service, playersID, leagueID, timeout, temp_players, c
                 }
             }
             leagueDB.update({
-                max_points: max_points
+                max_points: max_points,
+                total_players: Object.keys(temp_players).length
             })
             callback(true)
         }).catch(function (remainingTime) {
@@ -209,91 +222,172 @@ function braacketGetPlayers(params) {
             const $ = cheerio.load(body)
             let player_fields = $('table.table.table-hover.my-table-checkbox')
             if (err || player_fields.length <= 0) {
-                reject({
-                    id,
-                    page
-                })
+                reject({})
             } else {
                 let values = {}
-                player_fields.find('tbody').find('a').each(function (i, elem) {
-                    values[$(this).text().toLowerCase()] = {
-                        "id": $(this).text().toLowerCase(),
-                        "name": $(this).text(),
-                        "points": undefined,
-                        "rank": undefined,
-                        "active": false,
-                        "url": "https://braacket.com" + $(this).attr('href'),
-                        "updated": false
+                player_fields.find('tbody').find('a:not(.badge)').each(function (i, elem) {
+                    let id = $(this).text().trim().toLowerCase()
+                    if(!(id in values)){
+                        values[id] = {
+                            "id": id,
+                            "name": $(this).text().trim(),
+                            "points": undefined,
+                            "rank": undefined,
+                            "active": false,
+                            "url": "https://braacket.com" + $(this).attr('href'),
+                            "updated": false
+                        }
                     }
                 })
 
                 resolve(values)
             }
         })
+    }).catch(function(err){
+        return err;
     })
 }
 
-function braacketGetPages(id, rows) {
+function braacketGetPages(current_pages, id, rows) {
     return new Promise((resolve, reject) => {
-        request('https://braacket.com/league/' + id + '/player?rows=' + rows, {
-            json: false
-        }, (err, res, body) => {
-            const $ = cheerio.load(body)
-            let displaying_field = $("div.input-group-addon.my-input-group-addon:contains('Rows')")
-            if (err || displaying_field.length <= 0) {
-                reject({
-                    err
-                })
-            } else {
-                let total = parseInt(displaying_field.text().match(new RegExp('of [0-9]+'))[0].split(" ")[1])
-                let pages = Math.ceil(total / rows)
-                resolve({
-                    pages
-                })
-            }
-        })
+        if(current_pages != null){
+            resolve({pages:current_pages})
+        } else{
+            request('https://braacket.com/league/' + id + '/player?rows=' + rows, { json: false }, (err, res, body) => {
+                const $ = cheerio.load(body)
+                let displaying_field = $("div.input-group-addon.my-input-group-addon:contains('Rows')")
+                if (err || displaying_field.length <= 0) {
+                    if(err){
+                        reject({pages:0})
+                    }
+                    else{
+                        reject({pages:-1})
+                    }
+                } else {
+                    let total = parseInt(displaying_field.text().match(new RegExp('of [0-9]+'))[0].split(" ")[1])
+                    let pages = Math.ceil(total / rows)
+                    resolve({
+                        pages:pages
+                    })
+                }
+            })
+        }
     })
 }
 
-function updatePlayers(service, id, playersID, leagueID, timeout, callback) {
+function updatePlayers(service, id, playersID, leagueID, timeout, current_updated, current_players, current_pages, callback) {
     if (service === 'braacket') {
         timoutPromise(timeout, function (resolve, reject, endTime) {
-            braacketGetPages(id, 500).then(function (values) {
+            braacketGetPages(current_pages, id, 500).then(function (values) {
                 let pages = values.pages
                 let params = []
                 for (i = 1; i <= pages; i++) {
-                    params.push({
-                        page: i,
-                        rows: 500,
-                        id: id
-                    })
+                    if(current_updated == null || !current_updated.includes(i)){
+                        params.push({
+                            page: i,
+                            rows: 500,
+                            id: id
+                        })
+                    }
                 }
                 Promise.all(params.map(braacketGetPlayers)).then(function (values) {
                     let temp_players = {}
+                    let updated = []
+                    let all_updated = true
                     for (v in values) {
                         let page = values[v]
-                        Object.keys(page).forEach(function (key) {
-                            temp_players[key] = page[key]
+                        if (Object.keys(page).length <= 0){
+                            all_updated = false
+                        }
+                        else{
+                            updated.push(v)
+                            Object.keys(page).forEach(function (key) {
+                                temp_players[key] = page[key]
+                            })
+                        }
+                    }
+                    if(all_updated){
+                        resolve({
+                            pages: pages,
+                            updated: updated,
+                            temp_players: temp_players,
+                            remainingTime: endTime - (new Date()).getTime()
                         })
                     }
-                    resolve({
-                        temp_players: temp_players,
+                    else{
+                        reject({
+                            pages: pages,
+                            updated: updated,
+                            temp_players: temp_players,
+                            remainingTime: endTime - (new Date()).getTime()
+                        })
+                    }
+
+                }).catch(function (err) {
+                    reject({
+                        pages: pages,
+                        updated: null,
+                        temp_players: null,
                         remainingTime: endTime - (new Date()).getTime()
                     })
-                }).catch(function (err) {
-                    reject(endTime - (new Date()).getTime())
                 })
+
             }).catch(function (err) {
-                reject(endTime - (new Date()).getTime())
+                if(err.pages >= 0){
+                    reject({
+                        pages: null,
+                        updated: null,
+                        temp_players:null,
+                        remainingTime: endTime - (new Date()).getTime()
+                    })
+                }
+                else{
+                    reject({
+                        pages: null,
+                        updated: null,
+                        temp_players:null,
+                        remainingTime: 0
+                    })
+                }
             })
         }).then(function (values) {
-            updatePlayerData(service, playersID, leagueID, values.remainingTime, values.temp_players, callback)
-        }).catch(function (remainingTime) {
-            if (remainingTime > 0) {
-                updatePlayers(service, id, playersID, leagueID, remainingTime, callback)
+            if(current_players != null){
+                for(p in values.temp_players){
+                    current_players[p] = values.temp_players[p]
+                }
+            }
+            else{
+                current_players = values.temp_players
+            }
+
+            updatePlayerData(service, playersID, leagueID, values.remainingTime, current_players, callback)
+        }).catch(function (err) {
+            if(err.temp_players != null && err.remainingTime > 0){
+                //some players were updated and theres time left.
+                //need to update current players
+                if(current_players != null){
+                    for(p in err.temp_players){
+                        current_players[p] = err.temp_players[p]
+                    }
+                }
+                else{
+                    current_players = err.temp_players
+                }
+                if(current_updated != null){
+                    for(p in err.updated){
+                        current_updated.push(err.updated[p])
+                    }
+                }
+                else{
+                    current_updated = err.updated
+                }
+                updatePlayers(service, id, playersID, leagueID, err.remainingTime, current_updated, current_players, err.pages, callback)
+            } else if (err.remainingTime > 0) {
+                updatePlayers(service, id, playersID, leagueID, err.remainingTime, current_updated, current_players, err.pages, callback)
             } else {
                 callback(false)
             }
+            
         })
     } else {
         callback(false)
@@ -478,6 +572,7 @@ function league_command(msg, message_parts) {
                                         mod: [],
                                         private: false,
                                         max_points: 0,
+                                        total_players: 0,
                                         service: "",
                                         players: playersDB.id,
                                         id: "",
@@ -505,7 +600,9 @@ function league_command(msg, message_parts) {
                         msg.reply("the league associated with this server cannot be found.")
                     } else {
                         if (message_parts.length > 1) {
-                            if (message_parts[1] === 'delete') {
+                            if (message_parts[1] === 'update' && message_parts.length == 2) {
+                                update_command(msg, guild, msg.channel, guildDoc, leagueDoc)
+                            } else if (message_parts[1] === 'delete') {
                                 if (message_parts.length == 2) {
                                     let ownerID = leagueDoc.data().owner
                                     let playersID = leagueDoc.data().players
@@ -670,6 +767,16 @@ function league_command(msg, message_parts) {
                                         } else {
                                             msg.reply("please provide a rank name.")
                                         }
+                                    } else if (message_parts[2] === 'update') {
+                                        if (hasModPermission(member, guild)){
+                                            let playersID = leagueDoc.data().players
+                                            let membersID = guildDoc.data().members
+                                            updateRoles(guild, league_id, membersID, playersID)
+                                            msg.reply("member ranks updated.")
+                                        }
+                                        else{
+                                            msg.reply("you do not have permission to use this command!")
+                                        }
                                     }
                                 } else {
                                     let currentRanks = leagueDoc.data().ranks
@@ -694,45 +801,34 @@ function league_command(msg, message_parts) {
     }
 }
 
-function update_command(msg, message_parts) {
-    let member = msg.author.id
-    let guild = msg.guild
-    if (message_parts.length == 1) {
-        if (guild != null) {
-            let guild_id = guild.id
-            let guildDB = db.collection('guilds').doc(guild_id)
-            guildDB.get().then((guildDoc) => {
-                if (!guildDoc.exists) {
-                    msg.reply("your server is not initialized with a league!\n\nUse `!league set` to get started!")
-                } else {
-                    let league_id = guildDoc.data().league_id
-                    let membersID = guildDoc.data().members
-                    let leagueDB = db.collection('leagues').doc(league_id)
-                    leagueDB.get().then((leagueDoc) => {
-                        if (!leagueDoc.exists) {
-                            msg.reply("the league associated with this server cannot be found.")
-                        } else {
-                            let playersID = leagueDoc.data().players
-                            let id = leagueDoc.data().id
-                            let service = leagueDoc.data().service
-                            if (id != '' && service != '') {
-                                updatePlayers(service, id, playersID, league_id, 300000, (all_updated) => {
-                                    if (all_updated) {
-                                        msg.reply("data updated.")
-                                        updateRoles(guild, league_id, membersID, playersID)
-                                    } else {
-                                        msg.reply("unable to update service data.")
-                                    }
-                                })
-                            } else {
-                                msg.reply("the league associated with this server has not been configured to retrieve data.\n\nUse `!league service <service_name> <id>`")
-                            }
-                        }
-                    })
-                }
-            })
+function update_command(msg, guild, channel, guildDoc, leagueDoc) {
+    let guild_id = guild.id
+    if (!guildDoc.exists) {
+        msg.reply("your server is not initialized with a league!\n\nUse `!league set` to get started!")
+    } else {
+        let league_id = guildDoc.data().league_id
+        let membersID = guildDoc.data().members
+        if (!leagueDoc.exists) {
+            msg.reply("the league associated with this server cannot be found.")
         } else {
-            msg.reply("please use this command in a server!")
+            let playersID = leagueDoc.data().players
+            let id = leagueDoc.data().id
+            let service = leagueDoc.data().service
+            if (id != '' && service != '') {
+                channel.startTyping()
+                updatePlayers(service, id, playersID, league_id, 300000, null, null, null, (all_updated) => {
+                    if (all_updated) {
+                        channel.stopTyping()
+                        msg.reply("data updated.")
+                        updateRoles(guild, league_id, membersID, playersID)
+                    } else {
+                        channel.stopTyping()
+                        msg.reply("unable to update service data.")
+                    }
+                })
+            } else {
+                msg.reply("the league associated with this server has not been configured to retrieve data.\n\nUse `!league service <service_name> <id>`")
+            }
         }
     }
 }
@@ -761,14 +857,22 @@ function rank_command(msg, message_parts) {
                             playersDB.get().then((playersDoc) => {
                                 if(playersDoc.exists){
                                     if (message_parts.length > 1) {
-                                        //active rank for playername
-                                        let player_name = message_parts.slice(1, message_parts.length).join(" ")
-                                        overallRank(player_name, playersDoc.data(), msg)
+                                        if(message_parts[1] === 'update'){
+                                            if (playersID != null) {
+                                                newTagRole(member, guild, league_id, membersID, playersID)
+                                                msg.reply("rank updated!")
+                                            }
+                                        }
+                                        else{
+                                            //active rank for playername
+                                            let player_name = message_parts.slice(1, message_parts.length).join(" ")
+                                            overallRank(player_name, playersDoc.data(), leagueDoc.data(), msg)
+                                        }
                                     } else {
                                         //active rank for caller
                                         if (membersDoc.exists && member in membersDoc.data()) {
                                             let player_name = membersDoc.data()[member]
-                                            overallRank(player_name, playersDoc.data(), msg)
+                                            overallRank(player_name, playersDoc.data(), leagueDoc.data(), msg)
                                         } else {
                                             msg.reply("your tag is not currently set!\n\nUse `!tag <player>` to associate your account with your player name!")
                                         }
@@ -806,9 +910,6 @@ client.on('message', msg => {
         rank_command(msg, message_parts)
     }
 
-    if (message_parts[0] === '!update') {
-        update_command(msg, message_parts)
-    }
 })
 
 
