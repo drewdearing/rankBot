@@ -145,6 +145,7 @@ function updateBraacketPlayer(player) {
                     const $ = cheerio.load(body)
                     let dashboard_values = $("div.panel-body").find("div.my-dashboard-values-sub")
                     let dashboard_rankings = $("div.panel-body").find("div.my-dashboard-values-main:contains('out of')")
+                    let check_not_avaliable = $("div.panel-body:contains('Not available.')")
                     if (dashboard_values.length > 0 && dashboard_rankings.length > 0) {
                         player.rank = parseInt(dashboard_rankings.text().trim().match(new RegExp('[0-9]+'))[0])
                         dashboard_values.each(function (i, elem) {
@@ -156,18 +157,30 @@ function updateBraacketPlayer(player) {
                             }
                         })
                         player.updated = true
-                        resolve(player)
+                        resolve({
+                            player: player,
+                            not_avaliable: false
+                        })
                     }
                     else{
-                        reject(player)
+                        reject({
+                            player: player,
+                            not_avaliable: check_not_avaliable.length > 0
+                        })
                     }
                 }
                 else{
-                    reject(player)
+                    reject({
+                        player: player,
+                        not_avaliable: false
+                    })
                 }
             })
         } else {
-            resolve(player)
+            resolve({
+                player: player,
+                not_avaliable: false
+            })
         }
     }).catch(function(p_err){
         return p_err
@@ -178,7 +191,12 @@ function updatePlayerData(service, playersID, leagueID, timeout, temp_players, c
     if (service === 'braacket') {
         timoutPromise(timeout, function (resolve, reject, endTime) {
             Promise.all(Object.values(temp_players).map(updateBraacketPlayer)).then(function (values) {
-                if(values.filter(p => !p.updated).length > 0){
+                values = values.filter(v => !v.not_avaliable)
+                temp_players = {}
+                values.forEach((v) => {
+                    temp_players[v.player.id] = v.player
+                })
+                if(values.filter(v => !v.player.updated).length > 0){
                     reject(endTime - (new Date()).getTime())
                 }
                 else{
