@@ -41,11 +41,17 @@ function exposePlayer(player_name, playersData, leagueData, msg) {
         let player = playersData[player_name.toLowerCase()]
         getInsult(player.name).then(function(insult) {
             if(player.active){
-                msg.channel.send(insult)
+                let randomNumber = Math.floor(Math.random() * Math.floor(100))
+                if(randomNumber < 15){
+                    overallRank(player_name, playersData, leagueData, msg)
+                }
+                else{
+                    msg.channel.send(insult)
+                }
             }
             else{
                 let randomNumber = Math.floor(Math.random() * Math.floor(100))
-                if(randomNumber < 10){
+                if(randomNumber < 15){
                     msg.channel.send(player_name + " isn't even active... psssh.")
                 }
                 else{
