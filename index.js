@@ -36,6 +36,48 @@ function overallRank(player_name, playersData, leagueData, msg) {
     }
 }
 
+function exposePlayer(player_name, playersData, leagueData, msg) {
+    if (player_name.toLowerCase() in playersData) {
+        let player = playersData[player_name.toLowerCase()]
+        getInsult(player.name).then(function(insult) {
+            if(player.active){
+                msg.channel.send(insult)
+            }
+            else{
+                let randomNumber = Math.floor(Math.random() * Math.floor(100))
+                if(randomNumber < 10){
+                    msg.channel.send(player_name + " isn't even active... psssh.")
+                }
+                else{
+                    msg.channel.send(insult)
+                }
+            }
+        })
+    } else {
+        msg.reply("player `" + player_name + "` is not recognized.")
+    }
+}
+
+function getInsult(player_name) {
+    return new Promise((resolve, reject) => {
+        if(player_name.toLowerCase() === 'socktastic'){
+            let randomNumber = Math.floor(Math.random() * Math.floor(100))
+            if(randomNumber < 25){
+                resolve("https://www.youtube.com/watch?v=JOGCsnDbQUk")
+                return
+            }
+        }
+        let url = encodeURI("https://insult.mattbas.org/api/insult.json?template=" + player_name + "is <adjective>");
+        request(url, { json: true }, (err, res, body) => {
+            if (err) {
+                resolve(player_name + " smells... good!")
+            } else {
+                resolve(body.insult)
+            }
+        })
+    })
+}
+
 function newTagRole(member_id, guild, league_id, membersID, playersID) {
     //max_points, ranks, playersData
     let membersDB = db.collection('members').doc(membersID)
@@ -903,7 +945,58 @@ function rank_command(msg, message_parts) {
                                     }
                                 }
                                 else{
-                                    msg.reply("There are no players in your league!\n\nUse `!update` to pull data.")
+                                    msg.reply("There are no players in your league!\n\nUse `!league update` to pull data.")
+                                }
+                            })
+                        })
+                    }
+                })
+            }
+        })
+    } else {
+        msg.reply("please use this command in a server!")
+    }
+}
+
+function expose_command(msg, message_parts) {
+    let member = msg.author.id
+    let guild = msg.guild
+    if (guild != null) {
+        let guild_id = guild.id
+        let guildDB = db.collection('guilds').doc(guild_id)
+        guildDB.get().then((guildDoc) => {
+            if (!guildDoc.exists) {
+                msg.reply("your server is not initialized with a league!\n\nUse `!league set` to get started!")
+            } else {
+                let league_id = guildDoc.data().league_id
+                let leagueDB = db.collection('leagues').doc(league_id)
+                leagueDB.get().then((leagueDoc) => {
+                    if (!leagueDoc.exists) {
+                        msg.reply("the league associated with this server cannot be found.")
+                    } else {
+                        let membersID = guildDoc.data().members
+                        let membersDB = db.collection('members').doc(membersID)
+                        membersDB.get().then((membersDoc) => {
+                            let playersID = leagueDoc.data().players
+                            let playersDB = db.collection('players').doc(playersID)
+                            playersDB.get().then((playersDoc) => {
+                                if(playersDoc.exists){
+                                    if (message_parts.length > 1) {
+                                        //active rank for playername
+                                        let player_name = message_parts.slice(1, message_parts.length).join(" ")
+                                        exposePlayer(player_name, playersDoc.data(), leagueDoc.data(), msg)
+                                    } else {
+                                        //active rank for caller
+                                        if (membersDoc.exists && member in membersDoc.data()) {
+                                            let player_name = membersDoc.data()[member]
+                                            exposePlayer(player_name, playersDoc.data(), leagueDoc.data(), msg)
+                                        } else {
+                                            msg.reply("your tag is not currently set!\n\nUse `!tag <player>` to associate your account with your player name!")
+                                        }
+                                    }
+                                }
+                                else{
+                                    msg.reply("There are no players in your league!\n\nUse `!league update` to pull data.")
                                 }
                             })
                         })
@@ -932,6 +1025,10 @@ client.on('message', msg => {
 
     if (message_parts[0] === '!rank') {
         rank_command(msg, message_parts)
+    }
+
+    if (message_parts[0] === '!expose') {
+        expose_command(msg, message_parts)
     }
 
 })
