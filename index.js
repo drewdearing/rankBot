@@ -67,7 +67,7 @@ function getInsult(player_name) {
                 return
             }
         }
-        let url = encodeURI("https://insult.mattbas.org/api/insult.json?template=" + player_name + "is <adjective>");
+        let url = encodeURI("https://insult.mattbas.org/api/insult.json?template=" + player_name + " is <adjective>");
         request(url, { json: true }, (err, res, body) => {
             if (err) {
                 resolve(player_name + " smells... good!")
