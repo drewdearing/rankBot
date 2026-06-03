@@ -6,6 +6,7 @@ import {
   getPlayer,
 } from "../../db/repo.js";
 import { getInsult } from "../../services/insult.js";
+import { playerKey } from "../../util/playerKey.js";
 import { overallRankLine } from "../format.js";
 import type { Command } from "./types.js";
 import { reply, requireGuildContext } from "./util.js";
@@ -44,8 +45,8 @@ export const exposeCommand: Command = {
       return;
     }
 
-    let playerName = interaction.options.getString("player")?.trim();
-    if (!playerName) {
+    let name = interaction.options.getString("player")?.trim();
+    if (!name) {
       const tag = await getMemberTag(ctx.guild.id, interaction.user.id);
       if (!tag) {
         await reply(
@@ -55,12 +56,13 @@ export const exposeCommand: Command = {
         );
         return;
       }
-      playerName = tag;
+      name = tag; // the tag stores the raw player name
     }
 
-    const player = await getPlayer(leagueId, playerName.toLowerCase());
+    // The tag/name is a raw display name; the player doc id is its key.
+    const player = await getPlayer(leagueId, playerKey(name));
     if (!player) {
-      await reply(interaction, `player \`${playerName}\` is not recognized.`, true);
+      await reply(interaction, `player \`${name}\` is not recognized.`, true);
       return;
     }
 

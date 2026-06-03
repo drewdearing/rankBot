@@ -72,16 +72,16 @@ export const tagCommand: Command = {
     }
 
     if (sub === "set") {
-      const tag = interaction.options.getString("player", true).trim().toLowerCase();
-      if (await isTagTaken(guild.id, tag, userId)) {
+      const input = interaction.options.getString("player", true).trim();
+      if (await isTagTaken(guild.id, input, userId)) {
         await reply(
           interaction,
-          `tag \`${tag}\` is already linked to another account!\n\nUse \`/tag unlink\` to unlink your tag.`,
+          `tag \`${input}\` is already linked to another account!\n\nUse \`/tag unlink\` to unlink your tag.`,
           true,
         );
         return;
       }
-      await setMemberTag(guild.id, userId, tag);
+      await setMemberTag(guild.id, userId, input);
       await reply(interaction, "tag set!", true);
       if (league) await updateMemberRole(guild, leagueId, league, userId);
       return;

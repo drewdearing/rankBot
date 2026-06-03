@@ -1,4 +1,5 @@
 import * as cheerio from "cheerio";
+import { playerKey } from "../util/playerKey.js";
 
 /**
  * Braacket scraper.
@@ -70,7 +71,7 @@ export function parseRoster(
     const name = link.text().trim();
     if (!name) return;
 
-    const id = name.toLowerCase();
+    const id = playerKey(name);
     if (seen.has(id)) return; // dedupe shared names (first occurrence wins)
     seen.add(id);
 

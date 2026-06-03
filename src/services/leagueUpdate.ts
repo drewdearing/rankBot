@@ -2,6 +2,7 @@ import type { League, Player } from "../db/schema.js";
 import {
   finishLeagueRefresh,
   getAllPlayers,
+  removeAllPlayers,
   removePlayer,
   setLeagueAggregates,
   upsertPlayer,
@@ -41,6 +42,7 @@ export interface UpdateDeps {
   getAllPlayers: (leagueId: string) => Promise<Player[]>;
   upsertPlayer: (leagueId: string, player: Player) => Promise<void>;
   removePlayer: (leagueId: string, playerId: string) => Promise<void>;
+  removeAllPlayers: (leagueId: string) => Promise<void>;
   finishLeagueRefresh: (
     leagueId: string,
     signature: string,
@@ -61,6 +63,7 @@ const defaultDeps: UpdateDeps = {
   getAllPlayers,
   upsertPlayer,
   removePlayer,
+  removeAllPlayers,
   finishLeagueRefresh,
   setLeagueAggregates,
 };
@@ -68,20 +71,24 @@ const defaultDeps: UpdateDeps = {
 /**
  * Refresh a league's players from the ranking service.
  *
- * Skip-vs-refresh is decided by the default ranking's *version*
- * (`rankingId|lastUpdated`, one cheap request). Each player doc is stamped with
- * the version it was scraped under, so:
- *   - the skip is free when the last complete refresh already covered the live
- *     version,
- *   - a run cut short by the time budget resumes by refetching only players not
- *     yet at the live version, and
- *   - if the ranking recomputes mid-resume, every player's version no longer
+ * Every run fetches the roster and reconciles it against the stored players: a
+ * player is re-scraped when it's missing from the DB or its stamped version
+ * (`rankingId|lastUpdated`) is behind the live ranking. So a row that went
+ * missing is always healed — we never declare "up to date" purely because the
+ * league signature matches.
+ *   - When nothing is missing or stale, the run is `uptodate` after only the
+ *     roster check (no per-player scraping).
+ *   - A run cut short by the time budget resumes by refetching only the players
+ *     not yet at the live version.
+ *   - If the ranking recomputes mid-resume, every player's version no longer
  *     matches, so they all refetch — the stored snapshot never mixes two
  *     computations.
  *
  * After a full pass, the version is re-checked: a recompute that happened *during*
  * the scrape yields `superseded` (nothing committed) rather than a blended
- * snapshot. `force` re-scrapes every player regardless of version.
+ * snapshot. `force` first wipes the stored players, so the whole roster flows
+ * back through the same missing-row path — a fresh rebuild that resumes the same
+ * way if the budget cuts it short (just run `/league update` again, no force).
  */
 export async function runLeagueUpdate(
   leagueId: string,
@@ -93,20 +100,22 @@ export async function runLeagueUpdate(
   const { rankingId, lastUpdated } = await deps.fetchRankingState(serviceId);
   const version = `${rankingId}|${lastUpdated}`;
 
-  // Skip when the last complete refresh already covered this exact version.
-  if (
-    !opts.force &&
-    lastUpdated !== "" &&
-    version === (league.rankingSignature ?? "")
-  ) {
-    return { status: "uptodate" };
-  }
-
+  // Always verify the stored rows against the live roster — never trust the
+  // league signature alone to declare "up to date". A row can go missing (or
+  // fall stale) without the ranking version changing, so we fetch the roster on
+  // every run and refetch only the players that are absent or behind.
   // The listing total is braacket's "X out of N" denominator; reused as the roster.
   const { entries: roster, total: rosterTotal } = await deps.fetchRoster(serviceId);
   // Excluded players have no ranking data — never store or fetch them.
   const fetchable = roster.filter((entry) => !entry.excluded);
   const keepIds = new Set(fetchable.map((entry) => entry.id));
+
+  // `force` nukes the cache so a possibly-wrong snapshot is rebuilt from
+  // scratch; the wiped rows then look "missing" and flow through the normal
+  // refetch path (resumable if the rebuild outlasts the budget). The roster
+  // fetch above runs first, so we never wipe when braacket is unreachable.
+  if (opts.force) await deps.removeAllPlayers(leagueId);
+
   const existing = new Map(
     (await deps.getAllPlayers(leagueId)).map((player) => [player.id, player] as const),
   );
@@ -116,10 +125,24 @@ export async function runLeagueUpdate(
     if (!keepIds.has(id)) await deps.removePlayer(leagueId, id);
   }
 
-  // A player needs refetching unless already stamped with the live version.
-  const pending = fetchable.filter(
-    (entry) => opts.force || existing.get(entry.id)?.rankingVersion !== version,
-  );
+  // A player needs refetching when the version is untrusted (no timestamp
+  // parsed), when its row is missing entirely, or when its stamp is behind the
+  // live version.
+  const trustCache = lastUpdated !== "";
+  const pending = fetchable.filter((entry) => {
+    if (!trustCache) return true;
+    const current = existing.get(entry.id);
+    return current === undefined || current.rankingVersion !== version;
+  });
+
+  // Every roster row is present and current — the cache already matches the
+  // live ranking, so there's nothing to re-scrape.
+  if (pending.length === 0) {
+    const current = [...existing.values()].filter((p) => keepIds.has(p.id));
+    const maxPoints = current.reduce((max, p) => Math.max(max, p.points ?? 0), 0);
+    await deps.setLeagueAggregates(leagueId, maxPoints, rosterTotal);
+    return { status: "uptodate" };
+  }
 
   const deadline = Date.now() + (opts.budgetMs ?? RUN_BUDGET_MS);
   let attempted = 0;

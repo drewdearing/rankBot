@@ -3,6 +3,7 @@ import type { League, Player } from "../db/schema.js";
 import { getAllMemberTags, getAllPlayers, getMemberTag, getPlayer } from "../db/repo.js";
 import { resolveRoleForPlayer } from "../services/roles.js";
 import { log } from "../util/logger.js";
+import { playerKey } from "../util/playerKey.js";
 
 /** Recompute and apply the rank role for a single guild member. */
 export async function updateMemberRole(
@@ -12,7 +13,8 @@ export async function updateMemberRole(
   userId: string,
 ): Promise<void> {
   const tag = await getMemberTag(guild.id, userId);
-  const player = tag ? await getPlayer(leagueId, tag) : null;
+  // The tag is a raw name; the player doc id is its key.
+  const player = tag ? await getPlayer(leagueId, playerKey(tag)) : null;
   await reconcile(guild, league, userId, player);
 }
 
@@ -31,7 +33,7 @@ export async function updateAllMemberRoles(
   await guild.members.fetch().catch(() => undefined);
 
   for (const { userId, tag } of members) {
-    await reconcile(guild, league, userId, players.get(tag) ?? null);
+    await reconcile(guild, league, userId, players.get(playerKey(tag)) ?? null);
   }
 }
 

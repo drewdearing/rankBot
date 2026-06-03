@@ -54,6 +54,7 @@ function harness(o: HarnessOpts) {
 
   const detailFetches: string[] = [];
   const removed: string[] = [];
+  let removedAll = 0;
   const upserted: Player[] = [];
   const finished: Array<{ signature: string; maxPoints: number; totalPlayers: number }> = [];
   const aggregates: Array<{ maxPoints: number; totalPlayers: number }> = [];
@@ -82,6 +83,10 @@ function harness(o: HarnessOpts) {
       players.delete(id);
       removed.push(id);
     },
+    removeAllPlayers: async () => {
+      removedAll += 1;
+      players.clear();
+    },
     finishLeagueRefresh: async (_l, signature, maxPoints, totalPlayers) => {
       finished.push({ signature, maxPoints, totalPlayers });
     },
@@ -95,6 +100,7 @@ function harness(o: HarnessOpts) {
     players,
     detailFetches,
     removed,
+    removedAll: () => removedAll,
     upserted,
     finished,
     aggregates,
@@ -109,8 +115,12 @@ function harness(o: HarnessOpts) {
 const V2: RankingState = { rankingId: "rk", lastUpdated: "t2" };
 
 describe("runLeagueUpdate", () => {
-  it("skips (uptodate) when the live version matches the stored signature", async () => {
-    const h = harness({ state: V2, roster: [entry("a")] });
+  it("is up to date when every roster row is present at the live version", async () => {
+    const h = harness({
+      state: V2,
+      roster: [entry("a")],
+      initial: [storedPlayer("a", "rk|t2")], // present and current
+    });
     const result = await runLeagueUpdate(
       "lg",
       makeLeague({ rankingSignature: "rk|t2" }),
@@ -118,9 +128,30 @@ describe("runLeagueUpdate", () => {
       h.deps,
     );
     expect(result).toEqual({ status: "uptodate" });
-    expect(h.rosterFetched()).toBe(0); // never even fetched the roster
-    expect(h.detailFetches).toEqual([]);
-    expect(h.finished).toEqual([]);
+    expect(h.rosterFetched()).toBe(1); // still verifies against the roster
+    expect(h.detailFetches).toEqual([]); // but re-scrapes nothing
+    expect(h.finished).toEqual([]); // no full pass, so no signature commit
+  });
+
+  it("re-scrapes a missing row even when the signature matches (no early skip)", async () => {
+    const h = harness({
+      state: V2,
+      roster: [entry("a"), entry("b")],
+      rosterTotal: 2,
+      details: { a: ranked(1, 100), b: ranked(2, 80) },
+      initial: [storedPlayer("a", "rk|t2")], // 'b' is missing from the DB
+    });
+    const result = await runLeagueUpdate(
+      "lg",
+      // Signature already equals the live version — the old code skipped here,
+      // dropping 'b' from the count. Now we verify rows and heal the gap.
+      makeLeague({ rankingSignature: "rk|t2" }),
+      {},
+      h.deps,
+    );
+    expect(result.status).toBe("complete");
+    expect(h.detailFetches).toEqual(["https://x/b"]); // only the missing row
+    expect(h.players.get("b")?.rank).toBe(2);
   });
 
   it("full-scrapes and commits the version when it changed", async () => {
@@ -210,12 +241,16 @@ describe("runLeagueUpdate", () => {
     expect(noresults?.rankingVersion).toBe("rk|t2");
   });
 
-  it("force re-scrapes everyone even when the version already matches", async () => {
+  it("force wipes the cache and re-scrapes the whole roster", async () => {
     const h = harness({
       state: V2,
-      roster: [entry("a")],
-      details: { a: ranked(1, 100) },
-      initial: [storedPlayer("a", "rk|t2")], // current — would normally be skipped
+      roster: [entry("a"), entry("b")],
+      rosterTotal: 2,
+      details: { a: ranked(1, 100), b: ranked(2, 80) },
+      initial: [
+        storedPlayer("a", "rk|t2"), // already current — normally skipped
+        storedPlayer("b", "rk|t2"),
+      ],
     });
     const result = await runLeagueUpdate(
       "lg",
@@ -224,7 +259,38 @@ describe("runLeagueUpdate", () => {
       h.deps,
     );
     expect(result.status).toBe("complete");
-    expect(h.detailFetches).toEqual(["https://x/a"]);
+    expect(h.removedAll()).toBe(1); // cache wiped first
+    expect(h.detailFetches.sort()).toEqual(["https://x/a", "https://x/b"]);
+  });
+
+  it("a forced wipe cut short by the budget resumes as a plain update", async () => {
+    const h = harness({
+      state: V2,
+      roster: [entry("a"), entry("b")],
+      details: { a: ranked(1, 100), b: ranked(2, 80) },
+      initial: [storedPlayer("a", "rk|t2"), storedPlayer("b", "rk|t2")],
+    });
+    // Run 1: force wipes, but the budget is already gone so nothing is refetched.
+    const first = await runLeagueUpdate(
+      "lg",
+      makeLeague({ rankingSignature: "rk|t2" }),
+      { force: true, budgetMs: -1 },
+      h.deps,
+    );
+    expect(first.status).toBe("partial");
+    expect(h.removedAll()).toBe(1);
+    expect(h.players.size).toBe(0); // wiped, nothing rebuilt yet
+
+    // Run 2: a plain `/league update` sees both rows as missing and rebuilds them.
+    const second = await runLeagueUpdate(
+      "lg",
+      makeLeague({ rankingSignature: "rk|t2" }),
+      {},
+      h.deps,
+    );
+    expect(second.status).toBe("complete");
+    expect(h.removedAll()).toBe(1); // not wiped again
+    expect(h.detailFetches.sort()).toEqual(["https://x/a", "https://x/b"]);
   });
 
   it("returns partial without committing when the budget is exhausted", async () => {

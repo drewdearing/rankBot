@@ -70,7 +70,7 @@ export async function setLeagueRanks(
 }
 
 export async function deleteLeague(leagueId: string): Promise<void> {
-  await deleteAllPlayers(leagueId);
+  await removeAllPlayers(leagueId);
   await db.leagues.remove(leagueId);
 }
 
@@ -127,7 +127,8 @@ export async function finishLeagueRefresh(
   });
 }
 
-async function deleteAllPlayers(leagueId: string): Promise<void> {
+/** Delete every player document under a league (used by `force` and delete). */
+export async function removeAllPlayers(leagueId: string): Promise<void> {
   const existing = await db.leagues(leagueId).players.all();
   await Promise.all(
     existing.map((doc) => db.leagues(leagueId).players.remove(doc.ref.id)),

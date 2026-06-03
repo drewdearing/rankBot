@@ -6,6 +6,7 @@ import {
   parseRankingState,
   parseRoster,
 } from "../src/services/braacket.ts";
+import { playerKey } from "../src/util/playerKey.ts";
 
 function fixture(name: string): string {
   return readFileSync(
@@ -28,9 +29,9 @@ describe("parseRoster", () => {
     expect(entries).toHaveLength(106);
   });
 
-  it("lowercases the id, keeps the name, and builds a detail url with the uuid", () => {
+  it("keys the id (Firestore-safe), keeps the name, and builds a detail url with the uuid", () => {
     for (const entry of entries) {
-      expect(entry.id).toBe(entry.name.toLowerCase());
+      expect(entry.id).toBe(playerKey(entry.name));
       expect(entry.url).toMatch(
         /^https:\/\/braacket\.com\/league\/ResurrectedUltimate\/player\/[0-9A-Fa-f-]{36}$/,
       );

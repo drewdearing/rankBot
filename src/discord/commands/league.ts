@@ -50,7 +50,7 @@ export const leagueCommand: Command = {
         .addBooleanOption((o) =>
           o
             .setName("force")
-            .setDescription("Abandon any in-progress refresh and start fresh")
+            .setDescription("Wipe the cached players and rebuild from scratch")
             .setRequired(false),
         ),
     )

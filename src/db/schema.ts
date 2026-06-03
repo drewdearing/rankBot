@@ -52,8 +52,9 @@ export interface League {
   totalPlayers: number;
   /**
    * The ranking version (`rankingId|lastUpdated`) of the last *complete* refresh.
-   * If it equals the live version on the next update, every player is already at
-   * that version, so we skip the (expensive) per-player re-scrape entirely.
+   * Informational only — the skip decision compares each player's stamped
+   * version against the live ranking (so a missing row is always re-fetched),
+   * not this field.
    */
   rankingSignature?: string;
 }
