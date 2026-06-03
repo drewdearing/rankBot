@@ -278,16 +278,28 @@ async function handleUpdate(
       // Only apply roles from a fully-scraped snapshot, never a partial one.
       const refreshed = (await getLeague(leagueId)) ?? league;
       await updateAllMemberRoles(ctx.guild, leagueId, refreshed);
-      await interaction.editReply(`data updated — ${result.ranked} ranked player(s).`);
+      let msg = `data updated — ${result.ranked} ranked player(s).`;
+      if (result.failed > 0) {
+        msg +=
+          ` ${result.failed} player(s) couldn't be fetched this pass — ` +
+          "run `/league update` again to retry them.";
+      }
+      await interaction.editReply(msg);
     } else if (result.status === "superseded") {
       await interaction.editReply(
         "the ranking was recomputed while updating, so the snapshot wasn't saved — run `/league update` again for a consistent result.",
       );
     } else {
-      await interaction.editReply(
-        `updated ${result.fetched} player(s); ~${result.remaining} still pending (hit the time budget). ` +
-          "Run `/league update` again to finish — roles apply once the refresh completes.",
-      );
+      // partial — the time budget cut the pass short, and some attempted rows
+      // may also have failed. Both leave players pending for the next run.
+      const pending = result.remaining + result.failed;
+      let msg = `updated ${result.fetched} player(s); ~${pending} still pending`;
+      msg +=
+        result.failed > 0
+          ? ` (${result.remaining} not yet reached after hitting the time budget, ${result.failed} failed to fetch). `
+          : " (hit the time budget). ";
+      msg += "Run `/league update` again to finish — roles apply once the refresh completes.";
+      await interaction.editReply(msg);
     }
   } catch (err) {
     if (err instanceof LeagueNotFoundError) {

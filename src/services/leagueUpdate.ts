@@ -26,8 +26,13 @@ const RUN_BUDGET_MS = 12 * 60 * 1000;
 
 export type UpdateResult =
   | { status: "uptodate" }
-  | { status: "complete"; ranked: number; fetched: number }
-  | { status: "partial"; fetched: number; remaining: number }
+  // `failed` = roster rows we attempted but whose detail fetch threw. They keep
+  // their old (or no) version stamp, so they stay pending and a re-run retries
+  // them; report it so the caller can prompt for that re-run.
+  | { status: "complete"; ranked: number; fetched: number; failed: number }
+  // `remaining` = rows the budget cut off before we attempted them; `failed` =
+  // rows we attempted within budget but whose fetch threw. Both need a re-run.
+  | { status: "partial"; fetched: number; remaining: number; failed: number }
   // The ranking recomputed mid-scrape, so the pass may blend two computations —
   // not committed; re-run for a clean snapshot.
   | { status: "superseded"; fetched: number };
@@ -173,13 +178,18 @@ export async function runLeagueUpdate(
     if (`${after.rankingId}|${after.lastUpdated}` === version) {
       await deps.finishLeagueRefresh(leagueId, version, maxPoints, rosterTotal);
       const ranked = players.filter((p) => p.rank !== undefined).length;
-      return { status: "complete", ranked, fetched };
+      return { status: "complete", ranked, fetched, failed: attempted - fetched };
     }
     await deps.setLeagueAggregates(leagueId, maxPoints, rosterTotal);
     return { status: "superseded", fetched };
   }
   await deps.setLeagueAggregates(leagueId, maxPoints, rosterTotal);
-  return { status: "partial", fetched, remaining: pending.length - attempted };
+  return {
+    status: "partial",
+    fetched,
+    remaining: pending.length - attempted,
+    failed: attempted - fetched,
+  };
 }
 
 function toPlayer(

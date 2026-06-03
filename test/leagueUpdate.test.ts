@@ -44,6 +44,8 @@ interface HarnessOpts {
   roster: RosterEntry[];
   rosterTotal?: number;
   details?: Record<string, PlayerDetail>;
+  /** Roster ids whose detail fetch should throw (simulating a failed scrape). */
+  failIds?: string[];
   initial?: Player[];
 }
 
@@ -72,6 +74,7 @@ function harness(o: HarnessOpts) {
     fetchPlayerDetail: async (url) => {
       detailFetches.push(url);
       const id = url.split("/").pop() ?? "";
+      if (o.failIds?.includes(id)) throw new Error(`boom ${id}`);
       return o.details?.[id] ?? notAvailable;
     },
     getAllPlayers: async () => [...players.values()],
@@ -167,7 +170,7 @@ describe("runLeagueUpdate", () => {
       {},
       h.deps,
     );
-    expect(result).toEqual({ status: "complete", ranked: 2, fetched: 2 });
+    expect(result).toEqual({ status: "complete", ranked: 2, fetched: 2, failed: 0 });
     expect(h.detailFetches.sort()).toEqual(["https://x/a", "https://x/b"]);
     expect(h.upserted.every((p) => p.rankingVersion === "rk|t2")).toBe(true);
     // totalPlayers is the roster (listing) total, maxPoints from stored players.
@@ -305,9 +308,30 @@ describe("runLeagueUpdate", () => {
       { budgetMs: -1 }, // deadline already passed → nothing fetched
       h.deps,
     );
-    expect(result).toEqual({ status: "partial", fetched: 0, remaining: 2 });
+    expect(result).toEqual({ status: "partial", fetched: 0, remaining: 2, failed: 0 });
     expect(h.detailFetches).toEqual([]);
     expect(h.finished).toEqual([]); // signature NOT committed on a partial run
     expect(h.aggregates).toHaveLength(1);
+  });
+
+  it("reports players whose detail fetch failed and leaves them pending", async () => {
+    const h = harness({
+      state: V2,
+      roster: [entry("a"), entry("b")],
+      rosterTotal: 2,
+      details: { a: ranked(1, 100) },
+      failIds: ["b"], // 'b' throws mid-scrape
+    });
+    const result = await runLeagueUpdate(
+      "lg",
+      makeLeague({ rankingSignature: "rk|OLD" }),
+      {},
+      h.deps,
+    );
+    // Full pass (both attempted), committed, but 'b' is reported as failed.
+    expect(result).toEqual({ status: "complete", ranked: 1, fetched: 1, failed: 1 });
+    // 'a' stamped current; 'b' never stored, so a re-run sees it as missing.
+    expect(h.players.get("a")?.rankingVersion).toBe("rk|t2");
+    expect(h.players.has("b")).toBe(false);
   });
 });
