@@ -137,7 +137,14 @@ export async function runLeagueUpdate(
   const pending = fetchable.filter((entry) => {
     if (!trustCache) return true;
     const current = existing.get(entry.id);
-    return current === undefined || current.rankingVersion !== version;
+    // Refetch when the row is missing, its version is behind, or its stored URL
+    // no longer matches the roster — a changed braacket UUID (same name) means
+    // the cached detail belongs to a stale player record.
+    return (
+      current === undefined ||
+      current.rankingVersion !== version ||
+      current.url !== entry.url
+    );
   });
 
   // Every roster row is present and current — the cache already matches the

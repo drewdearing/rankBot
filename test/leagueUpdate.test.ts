@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import type { League, Player } from "../src/db/schema.ts";
 import type {
   PlayerDetail,
@@ -155,6 +155,28 @@ describe("runLeagueUpdate", () => {
     expect(result.status).toBe("complete");
     expect(h.detailFetches).toEqual(["https://x/b"]); // only the missing row
     expect(h.players.get("b")?.rank).toBe(2);
+  });
+
+  it("refetches a player whose URL (uuid) changed even at the current version", async () => {
+    const h = harness({
+      state: V2,
+      roster: [entry("a")],
+      rosterTotal: 1,
+      details: { a: ranked(1, 100) },
+      initial: [
+        // present and at the live version, but stored under an old uuid/url
+        { id: "a", name: "a", url: "https://x/OLD", active: true, rankingVersion: "rk|t2" },
+      ],
+    });
+    const result = await runLeagueUpdate(
+      "lg",
+      makeLeague({ rankingSignature: "rk|t2" }),
+      {},
+      h.deps,
+    );
+    expect(result.status).toBe("complete");
+    expect(h.detailFetches).toEqual(["https://x/a"]); // refetched despite matching version
+    expect(h.players.get("a")?.url).toBe("https://x/a"); // stored url healed
   });
 
   it("full-scrapes and commits the version when it changed", async () => {
@@ -322,12 +344,16 @@ describe("runLeagueUpdate", () => {
       details: { a: ranked(1, 100) },
       failIds: ["b"], // 'b' throws mid-scrape
     });
+    // The failed fetch is logged via log.warn (console.warn) by design; silence
+    // it so the expected error doesn't clutter the test output.
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     const result = await runLeagueUpdate(
       "lg",
       makeLeague({ rankingSignature: "rk|OLD" }),
       {},
       h.deps,
     );
+    warn.mockRestore();
     // Full pass (both attempted), committed, but 'b' is reported as failed.
     expect(result).toEqual({ status: "complete", ranked: 1, fetched: 1, failed: 1 });
     // 'a' stamped current; 'b' never stored, so a re-run sees it as missing.

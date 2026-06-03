@@ -1,4 +1,4 @@
-import { SlashCommandBuilder } from "discord.js";
+import { MessageFlags, SlashCommandBuilder } from "discord.js";
 import {
   createLeague,
   deleteLeague,
@@ -10,8 +10,13 @@ import {
   setLeagueService,
 } from "../../db/repo.js";
 import type { League, Rank } from "../../db/schema.js";
-import { BraacketError, LeagueNotFoundError } from "../../services/braacket.js";
+import {
+  BraacketError,
+  fetchRankingState,
+  LeagueNotFoundError,
+} from "../../services/braacket.js";
 import { runLeagueUpdate } from "../../services/leagueUpdate.js";
+import { leagueLink } from "../format.js";
 import { hasModPermission, isLeagueManager } from "../permissions.js";
 import { updateAllMemberRoles } from "../roles.js";
 import { log } from "../../util/logger.js";
@@ -171,7 +176,9 @@ export const leagueCommand: Command = {
     }
 
     if (!group && sub === "info") {
-      await reply(interaction, `this server is associated with \`${leagueId}\`.`, true);
+      const linked = await getLeague(leagueId);
+      const link = linked ? leagueLink(leagueId, linked) : `\`${leagueId}\``;
+      await reply(interaction, `this server is associated with ${link}.`, true);
       return;
     }
 
@@ -208,17 +215,9 @@ export const leagueCommand: Command = {
         await deleteLeague(leagueId);
         await reply(interaction, "league deleted.", true);
         return;
-      case "service": {
-        if (!isLeagueManager(userId, league)) {
-          await reply(interaction, "you do not have permission to use this command!", true);
-          return;
-        }
-        const service = interaction.options.getString("service", true);
-        const id = interaction.options.getString("id", true);
-        await setLeagueService(leagueId, service, id);
-        await reply(interaction, "league service set!", true);
+      case "service":
+        await handleService(interaction, leagueId, league);
         return;
-      }
     }
   },
 };
@@ -315,6 +314,55 @@ async function handleUpdate(
       );
     }
   }
+}
+
+async function handleService(
+  interaction: Parameters<Command["execute"]>[0],
+  leagueId: string,
+  league: League,
+): Promise<void> {
+  if (!isLeagueManager(interaction.user.id, league)) {
+    await reply(interaction, "you do not have permission to use this command!", true);
+    return;
+  }
+  const service = interaction.options.getString("service", true);
+  const id = interaction.options.getString("id", true);
+
+  // Re-setting the exact same service+id is a no-op — skip the round trip.
+  if (league.service === service && league.serviceId === id) {
+    await reply(interaction, "league service set!", true);
+    return;
+  }
+
+  // Only braacket is supported; verify the league actually exists there before
+  // pointing at it, so a typo'd id is caught now instead of on the next update.
+  if (service !== "braacket") {
+    await setLeagueService(leagueId, service, id);
+    await reply(interaction, "league service set!", true);
+    return;
+  }
+
+  await interaction.deferReply({ flags: MessageFlags.Ephemeral });
+  try {
+    await fetchRankingState(id); // 404 -> LeagueNotFoundError
+  } catch (err) {
+    if (err instanceof LeagueNotFoundError) {
+      await reply(interaction, "couldn't find that league on braacket — double-check the id.");
+    } else {
+      log.error("league service validation failed:", err);
+      await reply(
+        interaction,
+        err instanceof BraacketError
+          ? "braacket didn't respond as expected. Try again shortly."
+          : "unable to verify the league.",
+      );
+    }
+    return;
+  }
+
+  await setLeagueService(leagueId, service, id);
+  const updated: League = { ...league, service, serviceId: id };
+  await reply(interaction, `league service set! ${leagueLink(leagueId, updated)}`);
 }
 
 async function handleMod(

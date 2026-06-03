@@ -3,6 +3,8 @@ import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
   parsePlayerDetail,
+  parsePlayerName,
+  parsePlayerUrl,
   parseRankingState,
   parseRoster,
 } from "../src/services/braacket.ts";
@@ -89,5 +91,40 @@ describe("parsePlayerDetail", () => {
       fixture("braacket-detail-notavailable.html"),
     );
     expect(detail).toEqual({ available: false });
+  });
+});
+
+describe("parsePlayerName", () => {
+  it("reads the player name from the detail page title", () => {
+    expect(parsePlayerName(fixture("braacket-detail-active.html"))).toBe("PeachyKeen");
+  });
+
+  it("keeps a '/' that is part of the name (splits on the full marker)", () => {
+    const html = "<title>Austin Melee / Player / she/eeesh | manko</title>";
+    expect(parsePlayerName(html)).toBe("she/eeesh | manko");
+  });
+
+  it("returns undefined when the title isn't a player page", () => {
+    expect(parsePlayerName("<title>Austin Melee / Ranking</title>")).toBeUndefined();
+  });
+});
+
+describe("parsePlayerUrl", () => {
+  it("extracts the uuid from a pasted braacket profile link", () => {
+    expect(
+      parsePlayerUrl(
+        "https://braacket.com/league/ResurrectedUltimate/player/AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+      ),
+    ).toBe("AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA");
+  });
+
+  it("returns null for a plain name", () => {
+    expect(parsePlayerUrl("PeachyKeen")).toBeNull();
+  });
+
+  it("returns null for a non-braacket url (never fetch arbitrary hosts)", () => {
+    expect(
+      parsePlayerUrl("https://evil.example.com/player/AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"),
+    ).toBeNull();
   });
 });

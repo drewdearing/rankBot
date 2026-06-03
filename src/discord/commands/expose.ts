@@ -7,7 +7,7 @@ import {
 } from "../../db/repo.js";
 import { getInsult } from "../../services/insult.js";
 import { playerKey } from "../../util/playerKey.js";
-import { overallRankLine } from "../format.js";
+import { overallRankLine, playerLink } from "../format.js";
 import type { Command } from "./types.js";
 import { reply, requireGuildContext } from "./util.js";
 
@@ -69,11 +69,11 @@ export const exposeCommand: Command = {
     await interaction.deferReply();
     const roll = Math.random() * 100;
     if (!player.active && roll < 15) {
-      await interaction.editReply(`${player.name} isn't even active... psssh.`);
+      await reply(interaction, `${playerLink(player)} isn't even active... psssh.`);
     } else if (player.active && roll < 15) {
-      await interaction.editReply(overallRankLine(player, league.totalPlayers));
+      await reply(interaction, overallRankLine(player, league.totalPlayers));
     } else {
-      await interaction.editReply(await getInsult(player.name));
+      await reply(interaction, await getInsult(player.name, playerLink(player)));
     }
   },
 };

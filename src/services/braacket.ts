@@ -29,6 +29,31 @@ const USER_AGENT =
 
 const PLAYER_UUID_RE = /\/player\/([0-9A-Fa-f-]{36})/;
 
+/** The public braacket page for a league. */
+export function leagueUrl(serviceId: string): string {
+  return `${BASE_URL}/league/${serviceId}`;
+}
+
+/** Build the canonical detail-page URL for a player uuid within a league. */
+export function playerUrl(serviceId: string, uuid: string): string {
+  return `${BASE_URL}/league/${serviceId}/player/${uuid}`;
+}
+
+/** Pull the player uuid out of a detail-page URL, or null if there isn't one. */
+export function playerUuidFromUrl(url: string): string | null {
+  return PLAYER_UUID_RE.exec(url)?.[1] ?? null;
+}
+
+/**
+ * Extract a player uuid from a *user-pasted* braacket link. Returns null for
+ * anything that isn't a braacket player URL, so plain names fall through and we
+ * never fetch an arbitrary user-supplied host.
+ */
+export function parsePlayerUrl(input: string): string | null {
+  if (!/braacket\.com/i.test(input)) return null;
+  return playerUuidFromUrl(input);
+}
+
 export class BraacketError extends Error {}
 export class LeagueNotFoundError extends BraacketError {}
 
@@ -78,7 +103,7 @@ export function parseRoster(
     entries.push({
       id,
       name,
-      url: `${BASE_URL}/league/${serviceId}/player/${uuid}`,
+      url: playerUrl(serviceId, uuid),
       excluded: link.closest("td").find("i.fa-ban").length > 0,
     });
   });
@@ -165,6 +190,21 @@ export function parsePlayerDetail(html: string): PlayerDetail {
   return { available: true, rank, points, active };
 }
 
+/**
+ * The player's display name from a detail page, read from the document title
+ * (`{League} / Player / {Name}`). We split on the full " / Player / " marker so
+ * names that themselves contain "/" survive. Undefined if the title isn't shaped
+ * that way.
+ */
+export function parsePlayerName(html: string): string | undefined {
+  const $ = cheerio.load(html);
+  const title = $("title").first().text();
+  const marker = " / Player / ";
+  const i = title.indexOf(marker);
+  if (i < 0) return undefined;
+  return title.slice(i + marker.length).trim() || undefined;
+}
+
 // ---------------------------------------------------------------------------
 // Fetchers
 // ---------------------------------------------------------------------------
@@ -194,6 +234,28 @@ export async function fetchRoster(
 /** Fetch and parse a single player's detail page. */
 export async function fetchPlayerDetail(url: string): Promise<PlayerDetail> {
   return parsePlayerDetail(await getHtml(url));
+}
+
+/** Fetch a player's detail page and return just their display name. */
+export async function fetchPlayerName(url: string): Promise<string | undefined> {
+  return parsePlayerName(await getHtml(url));
+}
+
+/**
+ * Look up a single player by name via braacket's listing search
+ * (`/player?search=…`) instead of paging the whole roster. Returns the entry
+ * whose name matches exactly (after `playerKey` normalization), or undefined.
+ */
+export async function fetchPlayerByName(
+  serviceId: string,
+  name: string,
+): Promise<RosterEntry | undefined> {
+  const url =
+    `${BASE_URL}/league/${encodeURIComponent(serviceId)}/player` +
+    `?rows=${ROWS_PER_PAGE}&search=${encodeURIComponent(name)}`;
+  const { entries } = parseRoster(await getHtml(url, serviceId), serviceId);
+  const key = playerKey(name);
+  return entries.find((entry) => entry.id === key);
 }
 
 /** The default ranking's id + last-computed timestamp. One request. */
