@@ -152,6 +152,12 @@ export const leagueCommand: Command = {
         ),
     ),
 
+  help: {
+    audience: "mod",
+    summary:
+      "Configure this server's league — link it, pull rankings, and manage mods and role rules. Most actions require being the league owner or a mod.",
+  },
+
   async execute(interaction) {
     const ctx = await requireGuildContext(interaction);
     if (!ctx) return;

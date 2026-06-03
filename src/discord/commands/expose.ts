@@ -22,6 +22,12 @@ export const exposeCommand: Command = {
         .setRequired(false),
     ),
 
+  help: {
+    audience: "everyone",
+    summary: "Roast a player (or yourself) based on their ranking.",
+    examples: ["/expose", "/expose Mango"],
+  },
+
   async execute(interaction) {
     const ctx = await requireGuildContext(interaction);
     if (!ctx) return;

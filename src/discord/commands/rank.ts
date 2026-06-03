@@ -30,6 +30,12 @@ export const rankCommand: Command = {
       s.setName("update").setDescription("Refresh your rank role."),
     ),
 
+  help: {
+    audience: "everyone",
+    summary: "See a player's ranking, or refresh your own rank role.",
+    examples: ["/rank view", "/rank view Mango", "/rank update"],
+  },
+
   async execute(interaction) {
     const ctx = await requireGuildContext(interaction);
     if (!ctx) return;

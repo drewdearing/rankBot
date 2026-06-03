@@ -55,6 +55,12 @@ export const tagCommand: Command = {
         ),
     ),
 
+  help: {
+    audience: "everyone",
+    summary: "Link your Discord account to a player name — claim, view, or unlink a tag.",
+    examples: ["/tag view", "/tag set Mango", "/tag unlink"],
+  },
+
   async execute(interaction) {
     const ctx = await requireGuildContext(interaction);
     if (!ctx) return;
