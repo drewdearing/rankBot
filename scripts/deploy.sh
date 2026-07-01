@@ -81,6 +81,17 @@ sync_env() {
       names+=("$key")
     fi
   done
+  # Optional config (e.g. the braacket proxy): sync when present in .env, silent
+  # when absent — unlike the required secrets above, a missing value is normal
+  # (local dev has no proxy).
+  for key in BRAACKET_PROXY_URL; do
+    local_val=$(env_value "$key") || continue
+    remote_val=$(heroku config:get "$key" 2>/dev/null || true)
+    if [ "$local_val" != "$remote_val" ]; then
+      to_set+=("$key=$local_val")
+      names+=("$key")
+    fi
+  done
   if [ "${#to_set[@]}" -gt 0 ]; then
     echo "  Setting: ${names[*]}"
     # stdout hidden — `config:set` echoes the values back.

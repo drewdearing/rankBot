@@ -88,8 +88,12 @@ export const config = {
     : env.data.DISCORD_CLIENT_ID,
   // Prod always registers globally; only dev mode scopes to the dev guild.
   devGuildId: isDev ? env.data.DEV_GUILD_ID : undefined,
-  /** Optional proxy URL for braacket requests only (undefined = direct). */
-  braacketProxyUrl: env.data.BRAACKET_PROXY_URL,
+  /**
+   * Optional proxy URL for braacket requests only (undefined = direct). Prod
+   * only: local dev runs from a residential IP Cloudflare doesn't block, so dev
+   * skips the proxy to avoid burning paid bandwidth.
+   */
+  braacketProxyUrl: isDev ? undefined : env.data.BRAACKET_PROXY_URL,
   /** Mapped to the firebase-admin `ServiceAccount` (camelCase) shape. */
   serviceAccount: {
     projectId: sa.data.project_id,
