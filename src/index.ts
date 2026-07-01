@@ -3,8 +3,10 @@ import { config } from "./config.js";
 import { initFirebase } from "./db/firebase.js";
 import { createClient } from "./discord/client.js";
 import { commandsByName } from "./discord/commands/index.js";
+import { configureBraacketProxy } from "./services/braacket.js";
 import { log } from "./util/logger.js";
 
+configureBraacketProxy(config.braacketProxyUrl);
 initFirebase();
 
 const client = createClient();

@@ -20,6 +20,15 @@ const EnvSchema = z.object({
   // In dev mode, slash commands register to this guild only (instant). Prod
   // always registers globally regardless of this value.
   DEV_GUILD_ID: z.string().optional(),
+  // Optional outbound proxy for braacket scraping only — a full proxy URL with
+  // credentials (`http://user:pass@host:port`), e.g. an IPRoyal residential
+  // endpoint. Unset = direct fetch. Exists to get past Cloudflare's datacenter-IP
+  // 403 when scraping from Heroku. May include a literal `{session}` token (e.g.
+  // inside an IPRoyal `_session-{session}_` param) that the scraper swaps per
+  // attempt to draw a fresh exit IP on each retry. Validated leniently (the
+  // ProxyAgent constructor is the real check) so a quirky-but-valid proxy URL
+  // can't crash startup.
+  BRAACKET_PROXY_URL: z.string().min(1).optional(),
 });
 
 /** Shape of the downloaded Firebase service-account JSON (snake_case). */
@@ -79,6 +88,8 @@ export const config = {
     : env.data.DISCORD_CLIENT_ID,
   // Prod always registers globally; only dev mode scopes to the dev guild.
   devGuildId: isDev ? env.data.DEV_GUILD_ID : undefined,
+  /** Optional proxy URL for braacket requests only (undefined = direct). */
+  braacketProxyUrl: env.data.BRAACKET_PROXY_URL,
   /** Mapped to the firebase-admin `ServiceAccount` (camelCase) shape. */
   serviceAccount: {
     projectId: sa.data.project_id,

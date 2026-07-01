@@ -35,6 +35,7 @@
     "dotenv": "^17.4.2",
     "firebase-admin": "^13.10.0",
     "typesaurus": "^10.7.0",
+    "undici": "^7.28.0",
     "zod": "^4.4.3"
   },
   "devDependencies": {

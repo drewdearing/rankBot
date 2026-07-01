@@ -1,5 +1,7 @@
 import * as cheerio from "cheerio";
+import { fetch, ProxyAgent } from "undici";
 import { playerKey } from "../util/playerKey.js";
+import { log } from "../util/logger.js";
 
 /**
  * Braacket scraper.
@@ -30,6 +32,72 @@ const ROWS_PER_PAGE = 200;
 const USER_AGENT =
   "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:140.0) " +
   "Gecko/20100101 Firefox/140.0";
+
+/**
+ * Optional outbound proxy for braacket requests only, configured at startup via
+ * {@link configureBraacketProxy}. Scoped to this module's {@link getHtml}, so
+ * Discord/Firebase traffic never routes through it. Exists to get past
+ * Cloudflare's datacenter-IP 403 on Heroku by egressing from a residential IP.
+ *
+ * braacket rate-limits any single residential IP after a request or two, so the
+ * proxy URL may contain a literal {@link PROXY_SESSION_PLACEHOLDER} token:
+ * getHtml swaps it for a fresh value each attempt, giving every retry a new exit
+ * IP (e.g. an IPRoyal `_session-{session}_` sticky id). Without the placeholder
+ * the URL is used as-is — one fixed IP, fine only for a provider that rotates on
+ * its own.
+ */
+const PROXY_SESSION_PLACEHOLDER = "{session}";
+
+/** The configured proxy URL (possibly a {session} template); undefined = direct. */
+let proxyUrlTemplate: string | undefined;
+/** Reused agent when the URL has no {session} placeholder (nothing to rotate). */
+let fixedProxyDispatcher: ProxyAgent | undefined;
+let proxySessionSeq = 0;
+
+/**
+ * Route braacket requests through `proxyUrl`, or clear it with undefined. Fails
+ * soft: a malformed URL logs and leaves scraping on the direct connection rather
+ * than crashing the whole bot (which would take down every other command too).
+ * Never logs the URL itself — it carries proxy credentials.
+ */
+export function configureBraacketProxy(proxyUrl?: string): void {
+  proxyUrlTemplate = undefined;
+  fixedProxyDispatcher = undefined;
+  if (!proxyUrl) return;
+  try {
+    // Validate by constructing an agent for a concrete URL (a dummy session).
+    const dispatcher = new ProxyAgent(resolveProxyUrl(proxyUrl, "probe"));
+    proxyUrlTemplate = proxyUrl;
+    if (proxyUrl.includes(PROXY_SESSION_PLACEHOLDER)) {
+      log.info("braacket: routing requests through proxy (fresh IP per retry).");
+    } else {
+      fixedProxyDispatcher = dispatcher;
+      log.info("braacket: routing requests through configured proxy.");
+    }
+  } catch (err) {
+    proxyUrlTemplate = undefined;
+    log.error(
+      `braacket: invalid proxy URL, using direct connection: ${String(err)}`,
+    );
+  }
+}
+
+/** Substitute every session placeholder in a proxy URL template. */
+function resolveProxyUrl(template: string, session: string): string {
+  return template.split(PROXY_SESSION_PLACEHOLDER).join(session);
+}
+
+/**
+ * The dispatcher for the next attempt: a fresh agent with a new session token
+ * (=> new exit IP) when the URL is a {session} template, the one reused agent
+ * for a fixed URL, or undefined (direct) when no proxy is configured.
+ */
+function nextProxyDispatcher(): ProxyAgent | undefined {
+  if (!proxyUrlTemplate) return undefined;
+  if (fixedProxyDispatcher) return fixedProxyDispatcher;
+  const session = `rb${Date.now().toString(36)}${proxySessionSeq++}`;
+  return new ProxyAgent(resolveProxyUrl(proxyUrlTemplate, session));
+}
 
 const PLAYER_UUID_RE = /\/player\/([0-9A-Fa-f-]{36})/;
 
@@ -283,40 +351,86 @@ async function fetchRosterPage(
 }
 
 const MAX_ATTEMPTS = 4;
+// A proxied request gambles on a fresh residential IP each attempt (many are
+// rate-limited or blocked), so it needs more tries to land a clean one.
+const MAX_ATTEMPTS_PROXIED = 8;
 const RETRY_BASE_MS = 600;
 const MAX_RETRY_WAIT_MS = 30_000;
+// Re-rolling to a new IP isn't about calming an overloaded origin, so use a short
+// flat delay between proxied attempts instead of growing exponential backoff.
+const PROXY_REROLL_DELAY_MS = 500;
 const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
 
 /**
  * GET a braacket page with polite retry/backoff. Transient failures (429, 5xx,
- * network errors) are retried with exponential backoff + jitter, honoring a
- * `Retry-After` header when present, so a large refresh can ride out throttling
- * instead of leaving players unfetched. 404 (unknown league) is never retried.
+ * network errors) are retried, honoring a `Retry-After` header when present, so
+ * a large refresh can ride out throttling instead of leaving players unfetched.
+ * 404 (unknown league) is never retried.
+ *
+ * When a proxy is configured, each attempt egresses from a fresh IP (see
+ * {@link nextProxyDispatcher}) and `403` is treated as retryable too — through a
+ * residential proxy it means "this IP is blocked", which the next IP may not be.
  */
 async function getHtml(url: string, serviceId?: string): Promise<string> {
+  const maxAttempts = proxyUrlTemplate ? MAX_ATTEMPTS_PROXIED : MAX_ATTEMPTS;
   for (let attempt = 1; ; attempt++) {
-    let res: Response;
+    const dispatcher = nextProxyDispatcher();
+    const proxied = dispatcher !== undefined;
+    // A per-attempt (rotating) agent must be closed after use or it leaks
+    // sockets; the reused fixed agent and the default dispatcher must not be.
+    const closeAgent = (): void => {
+      if (proxied && dispatcher !== fixedProxyDispatcher) {
+        void (dispatcher as ProxyAgent).close().catch(() => {});
+      }
+    };
+    const retryDelay = (): number =>
+      proxied ? PROXY_REROLL_DELAY_MS : backoffMs(attempt);
+
+    let res: Awaited<ReturnType<typeof fetch>>;
     try {
-      res = await fetch(url, { headers: { "user-agent": USER_AGENT } });
+      res = await fetch(url, {
+        headers: { "user-agent": USER_AGENT },
+        dispatcher,
+      });
     } catch (err) {
-      if (attempt >= MAX_ATTEMPTS) {
+      closeAgent();
+      if (attempt >= maxAttempts) {
         throw new BraacketError(`Braacket request failed: ${String(err)}`);
       }
-      await sleep(backoffMs(attempt));
+      await sleep(retryDelay());
       continue;
     }
 
     if (res.status === 404 && serviceId) {
+      await drainBody(res);
+      closeAgent();
       throw new LeagueNotFoundError(`Braacket league not found: ${serviceId}`);
     }
-    if (res.ok) return res.text();
+    if (res.ok) {
+      const body = await res.text();
+      closeAgent();
+      return body;
+    }
 
-    if (RETRYABLE_STATUS.has(res.status) && attempt < MAX_ATTEMPTS) {
-      const wait = retryAfterMs(res.headers.get("retry-after")) ?? backoffMs(attempt);
-      await sleep(wait);
+    const retryable =
+      RETRYABLE_STATUS.has(res.status) || (proxied && res.status === 403);
+    const retryAfter = retryAfterMs(res.headers.get("retry-after"));
+    await drainBody(res);
+    closeAgent();
+    if (retryable && attempt < maxAttempts) {
+      await sleep(retryAfter ?? retryDelay());
       continue;
     }
     throw new BraacketError(`Braacket request failed (${res.status})`);
+  }
+}
+
+/** Discard an unread response body so its connection can be freed/reused. */
+async function drainBody(res: Awaited<ReturnType<typeof fetch>>): Promise<void> {
+  try {
+    await res.body?.cancel();
+  } catch {
+    // Body already consumed or absent — nothing to free.
   }
 }
 
