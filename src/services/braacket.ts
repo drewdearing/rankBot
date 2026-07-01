@@ -414,7 +414,7 @@ async function getHtml(
       // a transient network failure.
       if (signal?.aborted) throw aborted();
       if (attempt >= maxAttempts) {
-        throw new BraacketError(`Braacket request failed: ${String(err)}`);
+        throw new BraacketError(`Braacket request failed: ${describeError(err)}`);
       }
       await sleep(retryDelay(), signal);
       continue;
@@ -451,6 +451,22 @@ async function drainBody(res: Awaited<ReturnType<typeof fetch>>): Promise<void> 
   } catch {
     // Body already consumed or absent — nothing to free.
   }
+}
+
+/**
+ * Render an error with its `cause` chain. undici wraps the real reason (a proxy
+ * `407`, `ECONNREFUSED`, a TLS error, …) in a generic "fetch failed", so without
+ * unwrapping the cause a proxy/network failure is undiagnosable from the logs.
+ */
+function describeError(err: unknown): string {
+  const parts = [String(err)];
+  let cause: unknown = (err as { cause?: unknown } | null)?.cause;
+  for (let depth = 0; cause != null && depth < 4; depth++) {
+    const c = cause as { code?: unknown; message?: unknown };
+    parts.push(String(c.code ?? c.message ?? cause));
+    cause = (cause as { cause?: unknown }).cause;
+  }
+  return parts.join(" ← ");
 }
 
 function sleep(ms: number, signal?: AbortSignal): Promise<void> {

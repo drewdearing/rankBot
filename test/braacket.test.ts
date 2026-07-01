@@ -2,6 +2,7 @@ import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import { describe, expect, it } from "vitest";
 import {
+  fetchPlayerDetail,
   parsePlayerDetail,
   parsePlayerName,
   parsePlayerUrl,
@@ -126,5 +127,18 @@ describe("parsePlayerUrl", () => {
     expect(
       parsePlayerUrl("https://evil.example.com/player/AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA"),
     ).toBeNull();
+  });
+});
+
+describe("getHtml abort", () => {
+  it("aborts immediately (no fetch) when the signal is already aborted", async () => {
+    // An already-aborted signal trips getHtml's pre-fetch guard, so this makes no
+    // network call — it proves a deadline abort is terminal, not a retried flake.
+    await expect(
+      fetchPlayerDetail(
+        "https://braacket.com/league/x/player/AAAAAAAA-AAAA-AAAA-AAAA-AAAAAAAAAAAA",
+        AbortSignal.abort(),
+      ),
+    ).rejects.toThrow(/aborted/i);
   });
 });
