@@ -248,6 +248,16 @@ async function handleSet(
   await reply(interaction, "league set!", true);
 }
 
+/**
+ * Leagues with an in-flight `/league update` on this worker. Because the bot is
+ * a single worker process, a synchronous has()+add() (no await between) is a
+ * race-free lock: a second concurrent refresh is rejected rather than both
+ * competing for proxy IPs and doubling the work. In-memory on purpose — a
+ * crash/restart clears it, so a run that died mid-refresh never leaves a stuck
+ * lock (no TTL needed).
+ */
+const updateInProgress = new Set<string>();
+
 async function handleUpdate(
   ctx: GuildContext,
   interaction: Parameters<Command["execute"]>[0],
@@ -272,8 +282,22 @@ async function handleUpdate(
   }
 
   const force = interaction.options.getBoolean("force") ?? false;
-  await interaction.deferReply();
+
+  // Reject a concurrent refresh (see updateInProgress). has() + add() are
+  // synchronous with no await between, so two interleaved handlers can't both
+  // pass the check.
+  if (updateInProgress.has(leagueId)) {
+    await reply(
+      interaction,
+      "a refresh is already running for this league — give it a few minutes, then try again.",
+      true,
+    );
+    return;
+  }
+  updateInProgress.add(leagueId);
+
   try {
+    await interaction.deferReply();
     const result = await runLeagueUpdate(leagueId, league, { force });
     if (result.status === "uptodate") {
       await interaction.editReply(
@@ -319,6 +343,8 @@ async function handleUpdate(
           : "unable to update service data.",
       );
     }
+  } finally {
+    updateInProgress.delete(leagueId);
   }
 }
 
