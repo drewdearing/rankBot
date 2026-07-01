@@ -22,10 +22,14 @@ import { playerKey } from "../util/playerKey.js";
 const BASE_URL = "https://braacket.com";
 const ROWS_PER_PAGE = 200;
 
-// Braacket rejects some non-browser user agents, so present a normal one.
+// Present a current desktop-browser User-Agent. NOTE: from a flagged datacenter
+// IP (e.g. Heroku) this alone will NOT defeat a Cloudflare 403 — that block is
+// keyed on IP/ASN reputation and TLS fingerprint, not the UA string (verified:
+// braacket serves the real page to curl/empty UAs from a clean IP). This is kept
+// current only as cheap hygiene; the real fix for a 403 is changing the egress IP.
 const USER_AGENT =
-  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) " +
-  "AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0 Safari/537.36";
+  "Mozilla/5.0 (Macintosh; Intel Mac OS X 10.15; rv:140.0) " +
+  "Gecko/20100101 Firefox/140.0";
 
 const PLAYER_UUID_RE = /\/player\/([0-9A-Fa-f-]{36})/;
 
