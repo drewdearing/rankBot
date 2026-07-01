@@ -5,6 +5,7 @@ import { createClient } from "./discord/client.js";
 import { commandsByName } from "./discord/commands/index.js";
 import { configureBraacketProxy } from "./services/braacket.js";
 import { log } from "./util/logger.js";
+import { shutdownCoordinator } from "./util/shutdown.js";
 
 configureBraacketProxy(config.braacketProxyUrl);
 initFirebase();
@@ -42,14 +43,22 @@ process.on("unhandledRejection", (reason) => {
   log.error("Unhandled promise rejection:", reason);
 });
 
-// Graceful shutdown so Heroku dyno cycling (SIGTERM) closes the gateway cleanly.
-const shutdown = (signal: string): void => {
+// Graceful shutdown. Heroku sends SIGTERM and waits ~30s before SIGKILL, so we
+// abort in-flight work (an aborted `/league update` replies "run again" instead
+// of hanging) and let those replies land, THEN close the gateway — destroying
+// the client must come last since it kills the REST handler the replies use.
+const shutdown = async (signal: string): Promise<void> => {
   log.info(`Received ${signal}, shutting down.`);
-  Promise.resolve(client.destroy())
-    .catch((err) => log.error("Error during shutdown:", err))
-    .finally(() => process.exit(0));
+  try {
+    await shutdownCoordinator.begin();
+    await Promise.resolve(client.destroy());
+  } catch (err) {
+    log.error("Error during shutdown:", err);
+  } finally {
+    process.exit(0);
+  }
 };
-process.on("SIGTERM", () => shutdown("SIGTERM"));
-process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("SIGTERM", () => void shutdown("SIGTERM"));
+process.on("SIGINT", () => void shutdown("SIGINT"));
 
 void client.login(config.botToken);

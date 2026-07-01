@@ -20,6 +20,7 @@ import { leagueLink } from "../format.js";
 import { hasModPermission, isLeagueManager } from "../permissions.js";
 import { updateAllMemberRoles } from "../roles.js";
 import { log } from "../../util/logger.js";
+import { shutdownCoordinator } from "../../util/shutdown.js";
 import type { Command } from "./types.js";
 import { reply, requireGuildContext, type GuildContext } from "./util.js";
 
@@ -211,7 +212,10 @@ export const leagueCommand: Command = {
 
     switch (sub) {
       case "update":
-        await handleUpdate(ctx, interaction, leagueId, league);
+        // Track the promise so a graceful shutdown waits for its reply to land.
+        await shutdownCoordinator.track(
+          handleUpdate(ctx, interaction, leagueId, league),
+        );
         return;
       case "delete":
         if (userId !== league.owner) {
@@ -298,7 +302,10 @@ async function handleUpdate(
 
   try {
     await interaction.deferReply();
-    const result = await runLeagueUpdate(leagueId, league, { force });
+    const result = await runLeagueUpdate(leagueId, league, {
+      force,
+      signal: shutdownCoordinator.signal,
+    });
     if (result.status === "uptodate") {
       await interaction.editReply(
         "already up to date — no ranking changes since the last update.",
@@ -321,17 +328,27 @@ async function handleUpdate(
     } else {
       // partial — the time budget cut the pass short, and some attempted rows
       // may also have failed. Both leave players pending for the next run.
+      // A shutdown mid-scrape produces a partial too; name the real reason.
+      const reason = shutdownCoordinator.isShuttingDown()
+        ? "interrupted by a restart"
+        : "hitting the time budget";
       const pending = result.remaining + result.failed;
       let msg = `updated ${result.fetched} player(s); ~${pending} still pending`;
       msg +=
         result.failed > 0
-          ? ` (${result.remaining} not yet reached after hitting the time budget, ${result.failed} failed to fetch). `
-          : " (hit the time budget). ";
+          ? ` (${result.remaining} not yet reached after ${reason}, ${result.failed} failed to fetch). `
+          : ` (${reason}). `;
       msg += "Run `/league update` again to finish — roles apply once the refresh completes.";
       await interaction.editReply(msg);
     }
   } catch (err) {
-    if (err instanceof LeagueNotFoundError) {
+    if (shutdownCoordinator.isShuttingDown()) {
+      // Aborted by a deploy/restart (e.g. during the roster fetch) — not a real
+      // failure; the players fetched so far are already saved.
+      await interaction.editReply(
+        "the bot restarted mid-update — progress saved. Run `/league update` again to finish.",
+      );
+    } else if (err instanceof LeagueNotFoundError) {
       await interaction.editReply(
         "couldn't find that league on braacket — check the id with `/league service`.",
       );

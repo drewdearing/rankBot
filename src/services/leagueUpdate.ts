@@ -109,7 +109,7 @@ const defaultDeps: UpdateDeps = {
 export async function runLeagueUpdate(
   leagueId: string,
   league: League,
-  opts: { force?: boolean; budgetMs?: number } = {},
+  opts: { force?: boolean; budgetMs?: number; signal?: AbortSignal } = {},
   deps: UpdateDeps = defaultDeps,
 ): Promise<UpdateResult> {
   // Start the clock before any network I/O: the budget must cover the ranking
@@ -120,9 +120,12 @@ export async function runLeagueUpdate(
   // Hard deadline: fires an abort that cancels any in-flight fetch, so the run
   // unwinds and replies at the deadline instead of drifting past it while slow
   // proxied requests finish their retries. (AbortSignal.timeout self-cleans — no
-  // controller/timer to clear.) The per-task deadline check below still avoids
-  // starting work we don't have time for.
-  const signal = AbortSignal.timeout(Math.max(0, budgetMs));
+  // controller/timer to clear.) Combined with an optional external signal
+  // (graceful shutdown) so a deploy landing mid-scrape also unwinds and replies.
+  const timeoutSignal = AbortSignal.timeout(Math.max(0, budgetMs));
+  const signal = opts.signal
+    ? AbortSignal.any([timeoutSignal, opts.signal])
+    : timeoutSignal;
   const { serviceId } = league;
   const { rankingId, lastUpdated } = await deps.fetchRankingState(serviceId, signal);
   const version = `${rankingId}|${lastUpdated}`;
@@ -185,7 +188,9 @@ export async function runLeagueUpdate(
   let fetched = 0;
 
   await mapWithConcurrency(pending, CONCURRENCY, async (entry) => {
-    if (Date.now() > deadline) return; // budget hit — leave for the next run
+    // Deadline or shutdown — stop starting work and leave it for the next run
+    // (an already-aborted signal yields a clean `partial`, not a re-check error).
+    if (signal.aborted || Date.now() > deadline) return;
     attempted += 1;
     try {
       const detail = await deps.fetchPlayerDetail(entry.url, signal);
