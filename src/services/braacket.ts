@@ -288,14 +288,15 @@ export function parsePlayerName(html: string): string | undefined {
  */
 export async function fetchRoster(
   serviceId: string,
+  signal?: AbortSignal,
 ): Promise<{ entries: RosterEntry[]; total: number }> {
-  const first = await fetchRosterPage(serviceId, 1);
+  const first = await fetchRosterPage(serviceId, 1, signal);
   const pages = Math.max(1, Math.ceil(first.total / ROWS_PER_PAGE));
 
   const byId = new Map<string, RosterEntry>();
   for (const entry of first.entries) byId.set(entry.id, entry);
   for (let page = 2; page <= pages; page++) {
-    const next = await fetchRosterPage(serviceId, page);
+    const next = await fetchRosterPage(serviceId, page, signal);
     for (const entry of next.entries) {
       if (!byId.has(entry.id)) byId.set(entry.id, entry);
     }
@@ -304,8 +305,11 @@ export async function fetchRoster(
 }
 
 /** Fetch and parse a single player's detail page. */
-export async function fetchPlayerDetail(url: string): Promise<PlayerDetail> {
-  return parsePlayerDetail(await getHtml(url));
+export async function fetchPlayerDetail(
+  url: string,
+  signal?: AbortSignal,
+): Promise<PlayerDetail> {
+  return parsePlayerDetail(await getHtml(url, { signal }));
 }
 
 /** Fetch a player's detail page and return just their display name. */
@@ -325,17 +329,20 @@ export async function fetchPlayerByName(
   const url =
     `${BASE_URL}/league/${encodeURIComponent(serviceId)}/player` +
     `?rows=${ROWS_PER_PAGE}&search=${encodeURIComponent(name)}`;
-  const { entries } = parseRoster(await getHtml(url, serviceId), serviceId);
+  const { entries } = parseRoster(await getHtml(url, { serviceId }), serviceId);
   const key = playerKey(name);
   return entries.find((entry) => entry.id === key);
 }
 
 /** The default ranking's id + last-computed timestamp. One request. */
-export async function fetchRankingState(serviceId: string): Promise<RankingState> {
+export async function fetchRankingState(
+  serviceId: string,
+  signal?: AbortSignal,
+): Promise<RankingState> {
   return parseRankingState(
     await getHtml(
       `${BASE_URL}/league/${encodeURIComponent(serviceId)}/ranking?rows=1`,
-      serviceId,
+      { serviceId, signal },
     ),
   );
 }
@@ -343,11 +350,12 @@ export async function fetchRankingState(serviceId: string): Promise<RankingState
 async function fetchRosterPage(
   serviceId: string,
   page: number,
+  signal?: AbortSignal,
 ): Promise<{ entries: RosterEntry[]; total: number }> {
   const url =
     `${BASE_URL}/league/${encodeURIComponent(serviceId)}/player` +
     `?rows=${ROWS_PER_PAGE}&page=${page}`;
-  return parseRoster(await getHtml(url, serviceId), serviceId);
+  return parseRoster(await getHtml(url, { serviceId, signal }), serviceId);
 }
 
 const MAX_ATTEMPTS = 4;
@@ -371,9 +379,16 @@ const RETRYABLE_STATUS = new Set([429, 500, 502, 503, 504]);
  * {@link nextProxyDispatcher}) and `403` is treated as retryable too — through a
  * residential proxy it means "this IP is blocked", which the next IP may not be.
  */
-async function getHtml(url: string, serviceId?: string): Promise<string> {
+async function getHtml(
+  url: string,
+  opts: { serviceId?: string; signal?: AbortSignal } = {},
+): Promise<string> {
+  const { serviceId, signal } = opts;
   const maxAttempts = proxyUrlTemplate ? MAX_ATTEMPTS_PROXIED : MAX_ATTEMPTS;
+  const aborted = (): BraacketError =>
+    new BraacketError("Braacket request aborted (run deadline reached)");
   for (let attempt = 1; ; attempt++) {
+    if (signal?.aborted) throw aborted();
     const dispatcher = nextProxyDispatcher();
     const proxied = dispatcher !== undefined;
     // A per-attempt (rotating) agent must be closed after use or it leaks
@@ -391,13 +406,17 @@ async function getHtml(url: string, serviceId?: string): Promise<string> {
       res = await fetch(url, {
         headers: { "user-agent": USER_AGENT },
         dispatcher,
+        signal,
       });
     } catch (err) {
       closeAgent();
+      // A deadline abort is terminal — never retry it, and don't misreport it as
+      // a transient network failure.
+      if (signal?.aborted) throw aborted();
       if (attempt >= maxAttempts) {
         throw new BraacketError(`Braacket request failed: ${String(err)}`);
       }
-      await sleep(retryDelay());
+      await sleep(retryDelay(), signal);
       continue;
     }
 
@@ -418,7 +437,7 @@ async function getHtml(url: string, serviceId?: string): Promise<string> {
     await drainBody(res);
     closeAgent();
     if (retryable && attempt < maxAttempts) {
-      await sleep(retryAfter ?? retryDelay());
+      await sleep(retryAfter ?? retryDelay(), signal);
       continue;
     }
     throw new BraacketError(`Braacket request failed (${res.status})`);
@@ -434,8 +453,24 @@ async function drainBody(res: Awaited<ReturnType<typeof fetch>>): Promise<void> 
   }
 }
 
-function sleep(ms: number): Promise<void> {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+function sleep(ms: number, signal?: AbortSignal): Promise<void> {
+  return new Promise((resolve) => {
+    if (signal?.aborted) {
+      resolve();
+      return;
+    }
+    const timer = setTimeout(resolve, ms);
+    // Wake early on abort so a long backoff (e.g. a Retry-After) can't delay the
+    // deadline; the caller re-checks `signal.aborted` and bails.
+    signal?.addEventListener(
+      "abort",
+      () => {
+        clearTimeout(timer);
+        resolve();
+      },
+      { once: true },
+    );
+  });
 }
 
 /** Exponential backoff with jitter: ~0.6s, 1.2s, 2.4s (+ up to 300ms). */

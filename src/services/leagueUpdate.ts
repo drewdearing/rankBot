@@ -21,7 +21,11 @@ import {
 // Kept modest to be polite during a large (~thousands of pages) refresh; the
 // scraper's retry/backoff handles any throttling on top of this.
 const CONCURRENCY = 4;
-// Stay comfortably inside Discord's 15-minute interaction-token window.
+// Hard-bounds the WHOLE run (ranking + roster + detail fetches) via an
+// AbortSignal, so even in-flight requests are cancelled at the deadline and the
+// final editReply always lands inside Discord's 15-minute interaction-token
+// window. 12 min leaves ~3 min of margin for the reply (and role application on
+// a completing run).
 const RUN_BUDGET_MS = 12 * 60 * 1000;
 
 export type UpdateResult =
@@ -39,11 +43,18 @@ export type UpdateResult =
 
 /** The braacket + repo calls runLeagueUpdate makes — injectable for testing. */
 export interface UpdateDeps {
-  fetchRankingState: (serviceId: string) => Promise<RankingState>;
+  fetchRankingState: (
+    serviceId: string,
+    signal?: AbortSignal,
+  ) => Promise<RankingState>;
   fetchRoster: (
     serviceId: string,
+    signal?: AbortSignal,
   ) => Promise<{ entries: RosterEntry[]; total: number }>;
-  fetchPlayerDetail: (url: string) => Promise<PlayerDetail>;
+  fetchPlayerDetail: (
+    url: string,
+    signal?: AbortSignal,
+  ) => Promise<PlayerDetail>;
   getAllPlayers: (leagueId: string) => Promise<Player[]>;
   upsertPlayer: (leagueId: string, player: Player) => Promise<void>;
   removePlayer: (leagueId: string, playerId: string) => Promise<void>;
@@ -101,8 +112,19 @@ export async function runLeagueUpdate(
   opts: { force?: boolean; budgetMs?: number } = {},
   deps: UpdateDeps = defaultDeps,
 ): Promise<UpdateResult> {
+  // Start the clock before any network I/O: the budget must cover the ranking
+  // and roster fetches too (both slow through a proxy), not just the detail loop,
+  // or a run can outlast Discord's interaction token before we get to reply.
+  const budgetMs = opts.budgetMs ?? RUN_BUDGET_MS;
+  const deadline = Date.now() + budgetMs;
+  // Hard deadline: fires an abort that cancels any in-flight fetch, so the run
+  // unwinds and replies at the deadline instead of drifting past it while slow
+  // proxied requests finish their retries. (AbortSignal.timeout self-cleans — no
+  // controller/timer to clear.) The per-task deadline check below still avoids
+  // starting work we don't have time for.
+  const signal = AbortSignal.timeout(Math.max(0, budgetMs));
   const { serviceId } = league;
-  const { rankingId, lastUpdated } = await deps.fetchRankingState(serviceId);
+  const { rankingId, lastUpdated } = await deps.fetchRankingState(serviceId, signal);
   const version = `${rankingId}|${lastUpdated}`;
 
   // Always verify the stored rows against the live roster — never trust the
@@ -110,7 +132,10 @@ export async function runLeagueUpdate(
   // fall stale) without the ranking version changing, so we fetch the roster on
   // every run and refetch only the players that are absent or behind.
   // The listing total is braacket's "X out of N" denominator; reused as the roster.
-  const { entries: roster, total: rosterTotal } = await deps.fetchRoster(serviceId);
+  const { entries: roster, total: rosterTotal } = await deps.fetchRoster(
+    serviceId,
+    signal,
+  );
   // Excluded players have no ranking data — never store or fetch them.
   const fetchable = roster.filter((entry) => !entry.excluded);
   const keepIds = new Set(fetchable.map((entry) => entry.id));
@@ -156,7 +181,6 @@ export async function runLeagueUpdate(
     return { status: "uptodate" };
   }
 
-  const deadline = Date.now() + (opts.budgetMs ?? RUN_BUDGET_MS);
   let attempted = 0;
   let fetched = 0;
 
@@ -164,14 +188,15 @@ export async function runLeagueUpdate(
     if (Date.now() > deadline) return; // budget hit — leave for the next run
     attempted += 1;
     try {
-      const detail = await deps.fetchPlayerDetail(entry.url);
+      const detail = await deps.fetchPlayerDetail(entry.url, signal);
       // Store every player — including "Not available" ones — stamped with the
       // version, so they leave `pending` and don't get re-fetched every resume.
       // (Not-available docs carry no points/rank; toPlayer handles that.)
       await deps.upsertPlayer(leagueId, toPlayer(entry, detail, version));
       fetched += 1;
     } catch (err) {
-      log.warn(`detail fetch failed for ${entry.id}:`, err);
+      // A deadline abort is expected shutdown, not a real failure — don't warn.
+      if (!signal.aborted) log.warn(`detail fetch failed for ${entry.id}:`, err);
     }
   });
 
@@ -181,7 +206,7 @@ export async function runLeagueUpdate(
   if (attempted >= pending.length) {
     // Full pass done — but only commit if the ranking didn't recompute while we
     // were scraping, otherwise the snapshot could blend two computations.
-    const after = await deps.fetchRankingState(serviceId);
+    const after = await deps.fetchRankingState(serviceId, signal);
     if (`${after.rankingId}|${after.lastUpdated}` === version) {
       await deps.finishLeagueRefresh(leagueId, version, maxPoints, rosterTotal);
       const ranked = players.filter((p) => p.rank !== undefined).length;
