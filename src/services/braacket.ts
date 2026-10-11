@@ -12,13 +12,17 @@ import { log } from "../util/logger.js";
  *   - ranked + active        -> store with active: true
  *   - ranked + inactive       -> store with active: false (detail page shows a
  *                                danger <span> in the "Activity requirement" box)
- *   - "Not available"         -> no results; skip
+ *   - "Not available"         -> no results; still stored, with active: false
+ *                                and no rank or points (skipping them left
+ *                                them pending forever, so a refresh never
+ *                                converged)
  *
  * So we enumerate the roster from the listing page, then fetch each player's
- * detail page. There is no reliable cheap "did anything change" signal on
- * braacket (the default ranking or its settings can change with no new
- * tournament), so callers refresh the whole roster; resumability is handled by
- * the update orchestrator, not by caching here.
+ * detail page. The change signal is the default ranking's version (its id and
+ * last-compute timestamp, from fetchRankingState): the update orchestrator
+ * stamps every stored player with it, fetches the roster on every run, and
+ * refetches only the players whose row is missing, stale or moved — which is
+ * also how it resumes. Nothing is cached here.
  */
 
 const BASE_URL = "https://braacket.com";
@@ -131,7 +135,7 @@ export class LeagueNotFoundError extends BraacketError {}
 
 /** One entry from a league's player listing. */
 export interface RosterEntry {
-  /** Lowercased display name — the player document id. */
+  /** `playerKey(name)` — the player document id (not the raw name). */
   id: string;
   name: string;
   /** Detail-page URL (carries the player UUID). */

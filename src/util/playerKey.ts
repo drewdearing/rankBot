@@ -10,7 +10,8 @@
  *
  * Apply this ONLY to a raw display name — when scraping, or to user input. Never
  * feed it an existing key: it is NOT idempotent (it would double-escape the "%").
- * Stored tags/ids are already keys and must be used as-is.
+ * Stored player ids are already keys and must be used as-is; a member's stored
+ * tag is the raw lowercased name, so look it up with playerKey(tag).
  */
 export function playerKey(name: string): string {
   const key = name
