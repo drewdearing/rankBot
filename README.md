@@ -62,8 +62,8 @@ All config comes from environment variables (see [`.env.example`](./.env.example
 | `BOT_TOKEN` | yes | Production Discord bot token. |
 | `DISCORD_CLIENT_ID` | yes | Production application (client) id — used to register commands. |
 | `FIREBASE_SERVICE_ACCOUNT` | yes | Firebase service-account JSON, as a single-line string. |
-| `DEV_BOT_TOKEN` | no | Token of a **separate** dev bot, used when `BOT_ENV=dev`. Falls back to `BOT_TOKEN`. |
-| `DEV_CLIENT_ID` | no | The dev bot's client id (for dev command registration). Falls back to `DISCORD_CLIENT_ID`. |
+| `DEV_BOT_TOKEN` | no | Token of a **separate** dev bot, used when `BOT_ENV=dev`. Only a *missing* key falls back to `BOT_TOKEN`; an empty `DEV_BOT_TOKEN=` is used as an empty token, so the dev bot fails to log in. |
+| `DEV_CLIENT_ID` | no | The dev bot's client id (for dev command registration). Only a *missing* key falls back to `DISCORD_CLIENT_ID`; an empty value is used as is. |
 | `DEV_GUILD_ID` | no | In dev mode, register commands to this guild only (instant). Production always registers globally. |
 | `BRAACKET_PROXY_URL` | no | Production only (ignored in dev). Proxy URL, with credentials, for braacket.com requests only — Cloudflare blocks braacket for Heroku's IPs, so production needs one. A literal `{session}` in it is replaced on every attempt for a fresh exit IP. |
 
@@ -114,13 +114,34 @@ npm run deploy:rules        # firebase deploy --only firestore:rules,firestore:i
 **A merge to `master` deploys.** On every push to `master`,
 [`.github/workflows/deploy.yml`](.github/workflows/deploy.yml) runs the checks (`npm ci`,
 `npm run typecheck`, `npm test`) and then pushes that commit to the Heroku app's git repo,
-authenticated by the repository secret `HEROKU_API_KEY`. Heroku builds it (`heroku-postbuild` runs
-`tsc` → `dist/`), the `Procfile`'s `release` phase re-registers the slash commands globally, and
-the `worker` dyno restarts. Pull requests to `master` run the same checks
-([`.github/workflows/checks.yml`](.github/workflows/checks.yml)), and `master` takes changes only
-through a pull request whose checks pass. Heroku's own GitHub integration (automatic deploys) is
-not used; leave it off, or it would deploy alongside the workflow. To deploy your own copy, change
-the app name in `deploy.yml` and add the secret.
+authenticated by `HEROKU_API_KEY`, a secret of the `production` environment (below). Heroku builds
+it (`heroku-postbuild` runs `tsc` → `dist/`), the `Procfile`'s `release` phase re-registers the
+slash commands globally, and the `worker` dyno restarts. Pull requests to `master` run the same
+checks ([`.github/workflows/checks.yml`](.github/workflows/checks.yml)), and `master` takes changes
+only through a pull request whose checks pass. Heroku's own GitHub integration (automatic deploys)
+is not used; leave it off, or it would deploy alongside the workflow. To deploy your own copy,
+change the app name in `deploy.yml` and set up the environment and token as below.
+
+**The deploy token is an environment secret, never a repository secret.** Every workflow on every
+branch can read a repository secret, including one pushed on an `agent/…` branch. The deploy job
+runs in the GitHub environment `production`, so:
+
+1. Create the environment first: Settings → Environments → New environment `production` →
+   Deployment branches and tags → **Selected branches and tags** → add `master`. (Not "Protected
+   branches only", which lets any branch deploy until a branch is protected.)
+2. Create a token and store it as that environment's secret, from a machine logged in to Heroku
+   and to `gh` as the repository's owner. The token never appears on screen:
+
+   ```sh
+   heroku authorizations:create --description "rankBot GitHub Actions deploy" --short --scope write \
+     | gh secret set HEROKU_API_KEY --env production --repo drewdearing/rankBot
+   ```
+
+   The `write` scope leaves account information and config vars (the bot's secrets) out of the
+   token's reach. If Heroku rejects that scope, either when creating the token or when the deploy
+   pushes (`Authentication failed`), run the same command without `--scope write` to store a
+   default-scope token instead, then re-run the deploy. `heroku authorizations` lists tokens and
+   `heroku authorizations:revoke <id>` removes one.
 
 **Firestore rules and indexes, and Heroku config vars, are deployed from a machine with the
 logins**, not by the workflow. One-time setup: `firebase login`,
@@ -136,9 +157,9 @@ npm run deploy -- --env        # sync .env → Heroku config vars
 token and the deploy tooling (`--skip-doctor` skips it), then `npm test` (`--skip-tests`), then the
 steps you picked. `--env` sets `BOT_TOKEN`, `DISCORD_CLIENT_ID`, `FIREBASE_SERVICE_ACCOUNT` and,
 if present, `BRAACKET_PROXY_URL` wherever they differ from Heroku's, without printing a value, and
-unsets any `DEV_*` var on Heroku. The script's remaining step, `--heroku` (also part of a bare
-`npm run deploy`), pushes whatever `HEAD` is straight to Heroku; that is the workflow's job now, so
-don't use it for routine deploys.
+unsets `DEV_BOT_TOKEN`, `DEV_CLIENT_ID` and `DEV_GUILD_ID` on Heroku if any is set there. The
+script's remaining step, `--heroku` (also part of a bare `npm run deploy`), pushes whatever `HEAD`
+is straight to Heroku; that is the workflow's job now, so don't use it for routine deploys.
 
 **Backend first.** A merge ships its code at once, so whatever the code relies on goes out before
 the merge: a pull request that changes `firestore.rules` or `firestore.indexes.json` needs them

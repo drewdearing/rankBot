@@ -13,6 +13,9 @@ Dearing owns it. Architecture, the update algorithm and the decisions behind the
 - `master` is the live code, and a push to it deploys: `.github/workflows/deploy.yml` runs the
   checks, then pushes the commit to Heroku. Pull requests to `master` run
   `.github/workflows/checks.yml` (typecheck and tests), which `master` requires.
+- The Heroku token, `HEROKU_API_KEY`, is a secret of the `production` environment, which only
+  `master` can use. Never make it (or any deploy credential) a repository secret: every workflow
+  on every branch, including `agent/` branches, can read those.
 - Work on `agent/<topic>` branches cut from `origin/master`. Never push to `master`, never
   force-push a shared branch, and never merge: Drew merges, and a merge is a deploy.
 - Never deploy, and never run anything against prod: no `npm run deploy` or `deploy:rules`, no
@@ -92,9 +95,11 @@ Before you call work done: `npm run typecheck && npm test`, and report the test 
 ## Traps
 - Firestore is SHARED between dev and prod unless `FIREBASE_SERVICE_ACCOUNT` points at another
   project: a dev-bot `/league update` writes prod data.
-- No `BOT_ENV` means prod credentials. `npm run dev` without `DEV_BOT_TOKEN` falls back to the prod
-  token and fights the live bot on the gateway. zod requires `BOT_TOKEN` and `DISCORD_CLIENT_ID`
-  even in dev; placeholders are fine there.
+- No `BOT_ENV` means prod credentials. Under `npm run dev`, a `DEV_BOT_TOKEN` key that is missing
+  altogether falls back to the prod token, which then fights the live bot on the gateway; an empty
+  `DEV_BOT_TOKEN=` (as copied from `.env.example`) is used as an empty token and fails to log in.
+  The "using the PRODUCTION bot token" warning prints in both cases. zod requires `BOT_TOKEN` and
+  `DISCORD_CLIENT_ID` even in dev; placeholders are fine there.
 - Every deploy re-registers commands globally (the `release` phase), so a broken command
   definition breaks prod's commands; global propagation can take up to about an hour.
 - `npm run typecheck` skips `test/`, and vitest doesn't type-check: a type error in a test passes.

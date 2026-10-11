@@ -174,4 +174,6 @@ the proxy; each plain `/league update` resumes where the last one stopped.
   commit to Heroku (`.github/workflows/deploy.yml`), replacing `git push heroku` from the laptop,
   which shipped whatever branch was checked out. Firestore rules and indexes and Heroku config vars
   still go out through `scripts/deploy.sh --rules` / `--env`, before the code that needs them is
-  merged. Heroku's GitHub integration is not used.
+  merged. Heroku's GitHub integration is not used. The Heroku token is a secret of the
+  `production` environment, limited to `master`: a repository secret would be readable by a
+  workflow on any branch, including the agent branches the dev VM pushes.
