@@ -13,8 +13,11 @@ jobs:
   # Branch protection on master requires this job by its name, "checks".
   checks:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: 24
