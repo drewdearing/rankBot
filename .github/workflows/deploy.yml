@@ -1,0 +1,62 @@
+name: Deploy
+
+# A push to master (a merged pull request) deploys the bot to Heroku. Firestore
+# rules and indexes, and Heroku's config vars, are not deployed here: they go
+# out from a machine with the logins (`npm run deploy -- --rules` / `--env`).
+on:
+  push:
+    branches: [master]
+
+permissions:
+  contents: read
+
+# One deploy at a time, and a running deploy is never cancelled. If more pushes
+# arrive meanwhile, only the newest waits: GitHub cancels the older pending run,
+# which is fine because each push to master contains the ones before it.
+concurrency:
+  group: heroku-deploy
+  cancel-in-progress: false
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-node@v7
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm test
+
+  # A separate job, so the runner that holds the Heroku token never runs
+  # `npm ci` (and with it, third-party install scripts).
+  deploy:
+    needs: checks
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0 # Heroku rejects a push from a shallow clone
+          persist-credentials: false
+      # Forced because Heroku's repo still holds the commits from before the
+      # 2026-10-07 history rewrite; it is only a deploy target, never pulled from.
+      # Heroku's git endpoint takes the API key as the Basic-auth password. The
+      # username is a placeholder: Heroku's docs say to leave it empty, but git
+      # sends no credentials at all when it is empty. A credential helper reads
+      # the key from the environment, so it is never in a URL, on a command
+      # line, or in the log.
+      - name: Push to Heroku
+        env:
+          HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
+        run: |
+          if [ -z "$HEROKU_API_KEY" ]; then
+            echo "::error::The HEROKU_API_KEY secret is not set."
+            exit 1
+          fi
+          # Single quotes on purpose: the helper's shell expands the variable.
+          # shellcheck disable=SC2016
+          git -c credential.helper= \
+            -c 'credential.helper=!f() { echo username=heroku; echo "password=$HEROKU_API_KEY"; }; f' \
+            push --force https://git.heroku.com/peachtea-rankbot.git "$GITHUB_SHA:refs/heads/master"
