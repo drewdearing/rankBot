@@ -18,10 +18,15 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
-  checks:
+  # The same checks as checks.yml. Named "test" so a master commit shows a
+  # single "checks", the one branch protection requires.
+  test:
     runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - uses: actions/checkout@v7
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v7
         with:
           node-version: 24
@@ -32,31 +37,39 @@ jobs:
   # A separate job, so the runner that holds the Heroku token never runs
   # `npm ci` (and with it, third-party install scripts).
   deploy:
-    needs: checks
+    needs: test
     runs-on: ubuntu-latest
     timeout-minutes: 15
+    # HEROKU_API_KEY is a secret of the "production" environment, whose
+    # deployment branches are limited to master, so only a run from master can
+    # read it. It must never be a repository secret: any workflow on any branch
+    # can read those, including one on an agent/ branch pushed from the dev VM.
+    environment: production
     steps:
-      - uses: actions/checkout@v7
+      # Pinned to a commit because it runs in the job that holds the token.
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           fetch-depth: 0 # Heroku rejects a push from a shallow clone
           persist-credentials: false
       # Forced because Heroku's repo still holds the commits from before the
       # 2026-10-07 history rewrite; it is only a deploy target, never pulled from.
       # Heroku's git endpoint takes the API key as the Basic-auth password. The
-      # username is a placeholder: Heroku's docs say to leave it empty, but git
-      # sends no credentials at all when it is empty. A credential helper reads
-      # the key from the environment, so it is never in a URL, on a command
-      # line, or in the log.
+      # username is "heroku", as Heroku's own CLI credential helper sends; git
+      # sends no credentials at all when the username is empty. The helper is
+      # scoped to https://git.heroku.com (after clearing any other helper), so
+      # it answers no other host, and it reads the key from the environment, so
+      # the key is never in a URL, on a command line, or in the log.
       - name: Push to Heroku
         env:
           HEROKU_API_KEY: ${{ secrets.HEROKU_API_KEY }}
         run: |
-          if [ -z "$HEROKU_API_KEY" ]; then
-            echo "::error::The HEROKU_API_KEY secret is not set."
+          # ${VAR:+set} tests the secret without expanding it, even under set -x.
+          if [ -z "${HEROKU_API_KEY:+set}" ]; then
+            echo "::error::HEROKU_API_KEY is not set in the production environment."
             exit 1
           fi
           # Single quotes on purpose: the helper's shell expands the variable.
           # shellcheck disable=SC2016
           git -c credential.helper= \
-            -c 'credential.helper=!f() { echo username=heroku; echo "password=$HEROKU_API_KEY"; }; f' \
+            -c 'credential.https://git.heroku.com.helper=!f() { printf "username=heroku\npassword=%s\n" "$HEROKU_API_KEY"; }; f' \
             push --force https://git.heroku.com/peachtea-rankbot.git "$GITHUB_SHA:refs/heads/master"
