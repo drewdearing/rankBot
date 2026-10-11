@@ -1,143 +1,147 @@
 # rankBot
 
-A bot to retrieve data from Power Ranking services (currently Braacket.com) to use in Discord servers.
+A Discord bot that pulls power-ranking data from [Braacket](https://braacket.com)
+and assigns Discord roles based on where a player sits in the rankings.
+
+Rebuilt in **TypeScript** on **discord.js v14 slash commands**, with **Firestore**
+(typed via [Typesaurus](https://typesaurus.com)) for storage.
 
 ## Features
-1. Discord server members can claim a player name on the pr
-2. rankBot can assign roles based on the percentile a player is ranked on the pr
-3. Discord server members can easily find out their current stats (currently rank)
 
-## Getting Started
+1. Server members claim a player name (tag) on the power ranking.
+2. rankBot assigns roles based on the percentile a player is ranked in.
+3. Members can look up their (or anyone's) current rank.
 
-These instructions will get rankBot up and running on your own discord server.
+## Commands
 
-### Prerequisites
+| Command | What it does |
+| --- | --- |
+| `/tag view` | Show your linked player tag. |
+| `/tag set <player>` | Claim a player name. |
+| `/tag unlink [player]` | Unlink your tag (mods may unlink a player's tag from everyone). |
+| `/rank view [player]` | Show a player's rank (defaults to your tag). |
+| `/rank update` | Refresh your rank role. |
+| `/expose [player]` | Roast a player (defaults to your tag). |
+| `/league info` | Show the league linked to this server. |
+| `/league set <league_id>` | Link or create a league. |
+| `/league service <service> <id>` | Configure the data source (e.g. `braacket`). |
+| `/league update [force]` | Pull the latest ranking data. Skips work when the ranking is unchanged; `force:true` re-scrapes anyway. Resumable — re-run if it reports players still pending. |
+| `/league delete` | Permanently delete the league (owner only). |
+| `/league mod add\|remove <member>` | Manage league mods. |
+| `/league ranks add <name> <percentile> <active_required>` | Add a role rule. |
+| `/league ranks remove [name] [all]` | Remove a role rule (or all of them). |
+| `/league ranks list` | List role rules. |
+| `/league ranks update` | Reapply roles to all members. |
 
-1. [Add rankBot to your server](https://discordapp.com/api/oauth2/authorize?client_id=547545067796299786&permissions=268435456&scope=bot)
+A **role rule** maps a role to a `percentile` (a fraction of the league's max
+points) and whether the player must be **active** on the ranking to qualify.
+Rules are auto-sorted, so a player receives the highest role they qualify for.
 
-2. move rankBot's role above the roles you want rankBot to utilize
+**Permissions.** "Server mods" (admins, or anyone whose highest role is above the
+bot's role) can run `/league set` and `/league ranks update`. The league **owner**
+and league **mods** manage `/league update`, `service`, `mod`, and `ranks add/remove`.
 
-3. move rankBot's role below the roles you want to be able to modify rankBot's settings
+## Setup (adding rankBot to your server)
 
+1. **Invite the bot** with the `bot` and `applications.commands` scopes and the
+   **Manage Roles** permission:
+   `https://discord.com/api/oauth2/authorize?client_id=<CLIENT_ID>&permissions=268435456&scope=bot%20applications.commands`
+2. In the [Developer Portal](https://discord.com/developers/applications) → your app
+   → **Bot**, enable the **Server Members Intent** (privileged) — needed to assign roles.
+3. Move rankBot's role **above** the rank roles it should manage, and **below** the
+   roles allowed to change its settings.
+4. Get started: `/league set <league_id>`, then (owner) `/league service braacket <id>`
+   and `/league update`.
 
-### Setting up a league
+## Configuration
 
-By default, your server will not be associated with a league of players. You can either add an existing league or create a new one!
+All config comes from environment variables (see [`.env.example`](./.env.example)):
 
-The process is the same.
+| Variable | Required | Description |
+| --- | --- | --- |
+| `BOT_TOKEN` | yes | Production Discord bot token. |
+| `DISCORD_CLIENT_ID` | yes | Production application (client) id — used to register commands. |
+| `FIREBASE_SERVICE_ACCOUNT` | yes | Firebase service-account JSON, as a single-line string. |
+| `DEV_BOT_TOKEN` | no | Token of a **separate** dev bot, used when `BOT_ENV=dev`. Falls back to `BOT_TOKEN`. |
+| `DEV_CLIENT_ID` | no | The dev bot's client id (for dev command registration). Falls back to `DISCORD_CLIENT_ID`. |
+| `DEV_GUILD_ID` | no | In dev mode, register commands to this guild only (instant). Production always registers globally. |
 
-```
-!league set <league_id>
-```
+## Local development
 
-If you are not the owner of this league, then you will have to rely on the owner and their mods to setup the rest for you. However, if you are the owner, you will need to set up a service to retrieve data with.
+Requires **Node 22+**.
 
-```
-!league service braacket <braacket_id>
-```
-
-That's all that's required to start pulling data! To fill your league's database with the current ranking data use `league update`.
-
-```
-!league update
-```
-
-If you want to PERMANENTLY delete your league to free up the league_id, use `league delete`
-
-```
-!league delete
-```
-
-### Managing Discord Members' tags
-
-At any time, a discord server member can add associate a player name with their account by using `tag`.
-
-```
-!tag <player name>
-```
-
-Once a member's tag has been set, they can call `rank` to see their current ranking.
-
-```
-!rank
-```
-
-To see the rank of a specific player, add the `player name` argument.
-
-```
-!rank <player name>
-```
-
-Tags are unique for server members, so members won't be able to claim a tag that another member has already claimed.
-
-Tags can be unclaimed in two ways.
-
-1. Any user can unclaim themselves.
-
-```
-!tag unlink
+```sh
+npm install
+cp .env.example .env        # then fill in the values
+npm run doctor              # preflight: env, Firestore, Discord token, deploy tooling
+npm run register:dev        # register commands to your DEV_GUILD_ID (instant), as the dev bot
+npm run dev                 # run the dev bot with hot reload (tsx)
+npm test                    # run unit tests
 ```
 
-2. A server mod can unclaim a player name.
+`npm run dev` runs the TypeScript directly via `tsx` — no build step needed locally.
 
-```
-!tag unlink <player name>
-```
+**Use a separate dev bot.** A bot token is a single Discord identity, so running
+`npm run dev` with the *production* `BOT_TOKEN` while the bot is deployed makes the two
+instances fight over Discord's gateway (interactions land unpredictably on either). Create
+a second application in the Developer Portal, put its `DEV_BOT_TOKEN` / `DEV_CLIENT_ID` in
+`.env`, invite it to a test server, and set `DEV_GUILD_ID`. `npm run dev` and
+`npm run register:dev` set `BOT_ENV=dev`, which selects those creds and scopes registration
+to your test guild; production (`npm run register`, Heroku) uses `BOT_TOKEN` and registers
+globally. Firestore is still shared unless you also point `FIREBASE_SERVICE_ACCOUNT` at a
+separate dev project.
 
-### Adding roles to a league
+## Firestore security rules
 
-If you want to have your members' role reflect their ranking data, you will need to setup new role rules for your league!
+The bot uses the Firebase **Admin SDK**, which bypasses Firestore security rules.
+The shipped [`firestore.rules`](./firestore.rules) therefore **deny all** client
+access (defense-in-depth — only the secret service account can reach the data).
 
-To make a role rule, you need three parts.
+Point the CLI at **your own** Firebase project first (this writes a gitignored
+`.firebaserc` — don't run `firebase init`, which would offer to overwrite the
+committed rules):
 
-1. A role name
-2. A perctile (a fraction that represents a percentage the league's max score)
-3. `true` or `false`, depending on whether a player needs to be active on the pr to have this role.
-
-```
-!league ranks add <role name> <percentile> <true/false>
-```
-
-Role rules will automatically be ordered by percentile and whether they require a player to be active.
-
-Roles can also be removed using `league ranks remove`
-
-```
-!league ranks remove <role name>
-```
-
-Once you have your role rules to your liking, you can call `league ranks update` to update the roles of all members who have claimed a tag.
-
-```
-!league ranks update
+```sh
+firebase login
+firebase use --add <your-firebase-project-id>
+npm run deploy:rules        # firebase deploy --only firestore:rules,firestore:indexes
 ```
 
-Claiming and unclaiming tags will automatically update that individual's role, but players can update their role anytime using `rank update`
+## Deployment
 
-```
-!rank update
+The build is wired into `heroku-postbuild` (`tsc` → `dist/`), so it runs on Heroku's
+builder regardless of how you deploy. The `Procfile` registers slash commands in the
+`release` phase and runs the bot as a `worker` dyno. Set the config vars above with
+`heroku config:set` (never commit them).
+
+**One command** (Firestore rules → Heroku), after a one-time `firebase login`,
+`heroku git:remote -a <app>`, and config vars:
+
+```sh
+npm run deploy                 # tests → deploy Firestore rules/indexes → push to Heroku
+npm run deploy -- --rules      # Firestore rules/indexes only
+npm run deploy -- --heroku     # Heroku only
 ```
 
-### Adding mods to your league
+It refuses to push to Heroku with an uncommitted tree (Heroku deploys committed code).
+Under the hood it's just:
 
-If you want other discord users to be able to modify the sensitive settings in your league, you can add mods to your league using `league mod add`
+```sh
+firebase deploy --only firestore:rules,firestore:indexes   # Firestore rules + indexes
+git push heroku HEAD:master                                 # build + run on Heroku
+```
 
-```
-!league mod add @Member
-```
-
-To unmod a member, the owner or any mod can call `league mod remove`
-
-```
-!league mod remove @Member
-```
+**Deploy from GitHub instead:** in the Heroku dashboard, connect the repo and enable
+**Automatic deploys** from `master`. Heroku pulls from GitHub and runs the same build
+(use `npm run deploy -- --rules` for the Firestore side).
 
 ## Built With
 
-* [discord.js](https://discord.js.org) - Used to talk easily with discord
-* [cheerio](https://cheerio.js.org/) - Used to read html data
-* [firebase](https://firebase.google.com/) - Used to store user data
+- [discord.js](https://discord.js.org) — Discord API client (slash commands)
+- [Typesaurus](https://typesaurus.com) — typed Firestore ODM (on firebase-admin)
+- [cheerio](https://cheerio.js.org/) — HTML parsing for the Braacket scraper
+- [zod](https://zod.dev) — environment validation
 
-## Authors
+## Author
 
-* **Drew Dearing** - *developer* - [drewdearing](https://github.com/drewdearing)
+- **Drew Dearing** — [drewdearing](https://github.com/drewdearing)

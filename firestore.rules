@@ -1,0 +1,14 @@
+rules_version = '2';
+
+// The bot is the ONLY client of this database and it uses the Firebase Admin
+// SDK (service account), which bypasses these rules entirely. There is no
+// trusted client-SDK / Firebase Auth path, so we deny everything: any access
+// through the public client API is blocked. Defense-in-depth alongside keeping
+// the service-account credentials secret.
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

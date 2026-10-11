@@ -1,0 +1,1821 @@
+<!DOCTYPE html>
+<html lang="en"> 
+    <head>
+ 		<title>Resurrected Ultimate / Player</title>
+ 		
+ 		<meta charset="UTF-8">
+       	<meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="robots" content="All" />
+        
+               		<meta name="description" content='League: Resurrected Ultimate | United States; Super Smash Bros. Ultimate' />
+       	       	<meta name="keywords" content='League,Tournament,Leagues,Tournaments,Player,Ranking,Power ranking,ELO,Glicko,TrueSkill,Point,Bracket,Generator,Round-Robin,Single-Elimination,Double-Elimination,Pool,Multistage,Seeding,Statistics,History,Media' />
+       	
+       	<meta name="google-site-verification" content="q3EjBxDSLQrmS_qTedBmKwQ4IKGg2yf13ZcbTGs4pYY" />
+
+       	<link href="https://fonts.googleapis.com/css?family=Play:400,700" rel="stylesheet">
+       	<!-- 
+       	<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.0.13/css/all.css" integrity="sha384-DNOHZ68U8hZfKXOrtjWvjxusGo9WQnrNx2sqG0tfsghAvtVlRW3tvkXWZh58N9jp" crossorigin="anonymous">
+       	  -->
+       	
+       	       	
+                		<link rel="stylesheet" type="text/css" media="screen" href="/assets/core/bootstrap/css/bootstrap.min.css?v=1.2.1.2" />
+        	        		<link rel="stylesheet" type="text/css" media="screen" href="/assets/core/font-awesome/css/font-awesome.min.css?v=1.2.1.2" />
+        	        		<link rel="stylesheet" type="text/css" media="screen" href="/assets/core/font-awesome/css/font-awesome-animation.min.css?v=1.2.1.2" />
+        	        		<link rel="stylesheet" type="text/css" media="screen" href="/assets/core/bootstrap/css/custom/fix.css?v=1.2.1.2" />
+        	        		<link rel="stylesheet" type="text/css" media="screen" href="/assets/core/bootstrap/plugin/datetimepicker/css/bootstrap-datetimepicker.min.css?v=1.2.1.2" />
+        	        		<link rel="stylesheet" type="text/css" media="screen" href="/assets/core/bootstrap/css/custom/overload.css?v=1.2.1.2" />
+        	        		<link rel="stylesheet" type="text/css" media="screen" href="/assets/core/jquery/plugin/loading/css/jquery.loading.css?v=1.2.1.2" />
+        	        		<link rel="stylesheet" type="text/css" media="screen" href="/assets/core/jquery/plugin/panel/css/jquery.panel.css?v=1.2.1.2" />
+        	        		<link rel="stylesheet" type="text/css" media="screen" href="/assets/core/_my/css/main.css?v=1.2.1.2" />
+        	        		<link rel="stylesheet" type="text/css" media="screen" href="/assets/core/_my/css/theme/theme.css?v=1.2.1.2" />
+        	        		<link rel="stylesheet" type="text/css" media="screen" href="/assets/core/_my/css/game.css?v=1.2.1.2" />
+        	        		<link rel="stylesheet" type="text/css" media="screen" href="/assets/libraries/navsub/css/navsub.css?v=1.2.1.2" />
+        	        		<link rel="stylesheet" type="text/css" media="screen" href="/assets/libraries/auth/css/auth.css?v=1.2.1.2" />
+        	        		<link rel="stylesheet" type="text/css" media="screen" href="/assets/libraries/embed/css/embed.css?v=1.2.1.2" />
+        	        		<link rel="stylesheet" type="text/css" media="screen" href="/assets/libraries/search/css/search.css?v=1.2.1.2" />
+        			<script type="text/javascript">
+					</script>
+		    </head>  
+          
+	<!-- Google tag (gtag.js) -->
+	<script async src="https://www.googletagmanager.com/gtag/js?id=G-5BT2GVXRC8"></script>
+	<script>
+	  window.dataLayer = window.dataLayer || [];
+	  function gtag(){dataLayer.push(arguments);}
+	  gtag('js', new Date());
+
+	  gtag('config', 'G-5BT2GVXRC8');
+	</script>
+
+    <body>	    	
+	  	<!--  Header -->
+    	<div id='header'>
+	<div id='nav'>
+		<nav class="navbar navbar-default navbar-static-top">
+	<div class="container">
+		<div class="navbar-header">
+        	<button aria-controls="navbar" aria-expanded="false" data-target="#navbar" data-toggle="collapse" class="navbar-toggle collapsed" type="button">
+            	<span class="sr-only">Toggle navigation</span>
+            	<span class="icon-bar"></span>
+            	<span class="icon-bar"></span>
+            	<span class="icon-bar"></span>
+          	</button>
+          	<a class="navbar-brand" href='https://braacket.com/'>
+          		Braacket.com          	</a>
+        </div>
+        <div class="navbar-collapse collapse" id="navbar">
+        	<ul class="nav navbar-nav">
+            	<li class='active'>
+	<a href='https://braacket.com/league'>
+		League	</a>
+</li><li class=''>
+	<a href='https://braacket.com/tournament'>
+		Tournament	</a>
+</li>          	</ul>
+			<ul class="nav navbar-nav navbar-right">
+								
+        	</ul>
+    	</div><!--/.nav-collapse -->
+    	<div class="navbar-custom">
+    		<ul class="nav navbar-nav navbar-right">
+	    		<li class="dropdown">
+	<div data-toggle="dropdown" class="dropdown-toggle" aria-expanded="true">
+		<span class=''><i class='fa fa-cog fa-fw'></i></span> <span class='hidden-xs hidden-sm hidden'>Settings</span>
+		<span class="caret"></span>
+	</div>
+	<ul class="dropdown-menu dropdown-menu-right">
+		<li class="dropdown-header">Timezone</li>
+		<li class="">
+			<form method='POST' action='/setting/process_set_timezone' class='timezone my-form-dyn form-inline'>
+				<select class='form-control ' name='timezones'><option value='Pacific/Midway' >(UTC-11:00) American Samoa</option><option value='Pacific/Honolulu' >(UTC-10:00) Hawaii</option><option value='Pacific/Marquesas' >(UTC-09:30) Marquesas Islands</option><option value='America/Anchorage' >(UTC-09:00) Alaska</option><option value='America/Los_Angeles' >(UTC-08:00) Pacific Time (US &amp; Canada)</option><option value='America/Santa_Isabel' >(UTC-08:00) Baja California</option><option value='America/Tijuana' >(UTC-08:00) Tijuana</option><option value='America/Denver' >(UTC-07:00) Mountain Time (US &amp; Canada)</option><option value='America/Chihuahua' >(UTC-07:00) Chihuahua, La Paz, Mazatlan</option><option value='America/Phoenix' >(UTC-07:00) Arizona</option><option value='America/Chicago' >(UTC-06:00) Central Time (US &amp; Canada)</option><option value='America/Belize' >(UTC-06:00) Saskatchewan, Central America</option><option value='America/Mexico_City' >(UTC-06:00) Guadalajara, Mexico City, Monterrey</option><option value='Pacific/Easter' >(UTC-06:00) Easter Island</option><option value='America/New_York' >(UTC-05:00) Eastern Time (US &amp; Canada)</option><option value='America/Havana' >(UTC-05:00) Cuba</option><option value='America/Bogota' >(UTC-05:00) Bogota, Lima, Quito</option><option value='America/Caracas' >(UTC-04:30) Caracas</option><option value='America/Halifax' >(UTC-04:00) Atlantic Time (Canada)</option><option value='America/Goose_Bay' >(UTC-04:00) Atlantic Time (Goose Bay)</option><option value='America/Asuncion' >(UTC-04:00) Asuncion</option><option value='America/Santiago' >(UTC-04:00) Santiago</option><option value='America/Cuiaba' >(UTC-04:00) Cuiaba</option><option value='America/La_Paz' >(UTC-04:00) Georgetown, La Paz, Manaus, San Juan</option><option value='America/St_Johns' >(UTC-03:30) Newfoundland</option><option value='America/Argentina/Buenos_Aires' >(UTC-03:00) Buenos Aires</option><option value='America/Argentina/San_Luis' >(UTC-03:00) San Luis</option><option value='America/Argentina/Mendoza' >(UTC-03:00) Argentina, Cayenne, Fortaleza</option><option value='Atlantic/Stanley' >(UTC-03:00) Falkland Islands</option><option value='America/Godthab' >(UTC-03:00) Greenland</option><option value='America/Montevideo' >(UTC-03:00) Montevideo</option><option value='America/Sao_Paulo' >(UTC-03:00) Brasilia</option><option value='America/Miquelon' >(UTC-03:00) Saint Pierre and Miquelon</option><option value='America/Noronha' >(UTC-02:00) Mid-Atlantic</option><option value='Atlantic/Cape_Verde' >(UTC-01:00) Cape Verde Is.</option><option value='Atlantic/Azores' >(UTC-01:00) Azores</option><option value='Europe/London' >(UTC) Dublin, Edinburgh, Lisbon, London</option><option value='Africa/Casablanca' >(UTC) Casablanca</option><option value='Atlantic/Reykjavik' >(UTC) Monrovia, Reykjavik</option><option value='Europe/Zurich' selected>(UTC+01:00) Central European Time</option><option value='Africa/Algiers' >(UTC+01:00) West Central Africa</option><option value='Africa/Windhoek' >(UTC+01:00) Windhoek</option><option value='Africa/Tunis' >(UTC+01:00) Tunis</option><option value='Europe/Athens' >(UTC+02:00) Eastern European Time</option><option value='Africa/Johannesburg' >(UTC+02:00) South Africa Standard Time</option><option value='Europe/Kaliningrad' >(UTC+02:00) Kaliningrad</option><option value='Asia/Amman' >(UTC+02:00) Amman</option><option value='Asia/Beirut' >(UTC+02:00) Beirut</option><option value='Africa/Cairo' >(UTC+02:00) Cairo</option><option value='Asia/Jerusalem' >(UTC+02:00) Jerusalem</option><option value='Asia/Gaza' >(UTC+02:00) Gaza</option><option value='Asia/Damascus' >(UTC+02:00) Syria</option><option value='Europe/Moscow' >(UTC+03:00) Moscow, St. Petersburg, Volgograd</option><option value='Europe/Minsk' >(UTC+03:00) Minsk</option><option value='Africa/Nairobi' >(UTC+03:00) Nairobi, Baghdad, Kuwait, Qatar, Riyadh</option><option value='Asia/Tehran' >(UTC+03:30) Tehran</option><option value='Asia/Dubai' >(UTC+04:00) Abu Dhabi, Muscat, Tbilisi</option><option value='Asia/Yerevan' >(UTC+04:00) Yerevan</option><option value='Asia/Baku' >(UTC+04:00) Baku</option><option value='Indian/Mauritius' >(UTC+04:00) Mauritius</option><option value='Asia/Kabul' >(UTC+04:30) Kabul</option><option value='Asia/Yekaterinburg' >(UTC+05:00) Ekaterinburg</option><option value='Asia/Tashkent' >(UTC+05:00) Tashkent, Karachi</option><option value='Asia/Kolkata' >(UTC+05:30) Chennai, Kolkata, Mumbai, New Delhi</option><option value='Asia/Kathmandu' >(UTC+05:45) Kathmandu</option><option value='Asia/Novosibirsk' >(UTC+06:00) Novosibirsk</option><option value='Asia/Dhaka' >(UTC+06:00) Astana, Dhaka</option><option value='Asia/Almaty' >(UTC+06:00) Almaty, Bishkek, Qyzylorda</option><option value='Asia/Rangoon' >(UTC+06:30) Yangon (Rangoon)</option><option value='Asia/Krasnoyarsk' >(UTC+07:00) Krasnoyarsk</option><option value='Asia/Bangkok' >(UTC+07:00) Bangkok, Hanoi, Jakarta</option><option value='Asia/Irkutsk' >(UTC+08:00) Irkutsk</option><option value='Asia/Hong_Kong' >(UTC+08:00) Beijing, Chongqing, Hong Kong, Urumqi</option><option value='Asia/Singapore' >(UTC+08:00) Kuala Lumpur, Singapore</option><option value='Australia/Perth' >(UTC+08:00) Perth</option><option value='Asia/Yakutsk' >(UTC+09:00) Yakutsk</option><option value='Asia/Tokyo' >(UTC+09:00) Osaka, Sapporo, Tokyo</option><option value='Asia/Seoul' >(UTC+09:00) Seoul</option><option value='Australia/Adelaide' >(UTC+09:30) Adelaide</option><option value='Australia/Darwin' >(UTC+09:30) Darwin</option><option value='Asia/Vladivostok' >(UTC+10:00) Vladivostok</option><option value='Asia/Magadan' >(UTC+10:00) Magadan</option><option value='Australia/Brisbane' >(UTC+10:00) Brisbane, Guam</option><option value='Australia/Sydney' >(UTC+10:00) Sydney, Melbourne, Hobart</option><option value='Pacific/Noumea' >(UTC+11:00) Solomon Is., New Caledonia</option><option value='Pacific/Norfolk' >(UTC+11:30) Norfolk Island</option><option value='Asia/Anadyr' >(UTC+12:00) Anadyr, Kamchatka</option><option value='Pacific/Auckland' >(UTC+12:00) Auckland, Wellington</option><option value='Pacific/Fiji' >(UTC+12:00) Fiji</option><option value='Pacific/Chatham' >(UTC+12:45) Chatham Islands</option><option value='Pacific/Tongatapu' >(UTC+13:00) Nuku'alofa</option><option value='Pacific/Apia' >(UTC+13:00) Apia, Samoa</option><option value='Pacific/Kiritimati' >(UTC+14:00) Kiritimati</option></select>			</form>
+		</li>
+	</ul>
+</li>				<li class="dropdown ">
+    <div class="dropdown-toggle" data-toggle="dropdown">
+    	<span class=''>
+			<span class='glyphicon glyphicon-log-in fa-fw'></span>		</span>
+		<span class='hidden-xs hidden-sm hidden'>
+			Account
+		</span>
+		<span class="caret"></span>
+    </div>
+	<ul class="dropdown-menu dropdown-menu-right">
+		<li class="dropdown-header">
+			You are not logged in
+		</li>
+		<li>
+			<a href='#' data-toggle="modal" data-target="#login_modal">Login</a>
+		</li>
+		<li class='divider'></li>
+		<li class="dropdown-header">
+			Account manager
+		</li>
+		<li class=''>
+			<a href='/auth/create'>Create</a>
+		</li>
+		<li class=''>
+			<a href='/auth/password_recovery'>Password recovery</a>
+		</li>
+	</ul>
+</li>			</ul>
+		</div>
+	</div>
+</nav>	</div>
+</div>    	
+    	<!--  Content -->    	
+        <div id='content'>
+        	          	          	
+       			<div id='content_header' class='my-navsub-active'>	
+		<div class='container'>
+			<div class='content_header-body'>
+				<div>
+	<h1 class='text-transform-none'>
+		<a class='text-bold' href='/league/ResurrectedUltimate'>Resurrected Ultimate</a>
+	</h1>
+	<div class='content_header-infos'>
+			<div class='btn-group'>
+			<div class="btn btn-default btn-legend">
+				<i class='fa fa-gamepad fa-fw'></i>			</div>
+			<div class="btn btn-default">Super Smash Bros. Ultimate</div>
+		</div>
+		<br class='visible-xxs'>
+				<div class='btn-group'>
+			<div class="btn btn-default btn-legend"><i class='fa fa-globe fa-fw'></i></div>
+			<div class="btn btn-default">United States</div>
+		</div>
+		<br class='hidden-lg'>
+			
+	<div class='btn-group'>
+		<div class="btn btn-default btn-legend">
+			<i class='fa fa-users fa-fw'></i>		</div>
+		<div class="btn btn-default">
+			106		</div>
+	</div>
+	<div class='btn-group'>
+		<div class="btn btn-default btn-legend">
+			<i class='fa fa-sitemap fa-fw'></i>		</div>
+		<div class="btn btn-default">
+			28		</div>
+	</div>
+			<div class='content_header_share btn-group'>
+			<div class="btn btn-default btn-legend dropdown-toggle" data-toggle="dropdown">
+				<i class='fa fa-share-alt fa-fw'></i> <span class='hidden-xs'>Share</span> <span class='caret'></span>	
+			</div>
+			<ul class="dropdown-menu dropdown-menu-right">
+				<li class='share_url'>
+					<input type='text' value='https://braacket.com/league/ResurrectedUltimate' readonly />
+					<a href="#" class="btn btn-url" class='share_url_toggle'>URL</a>
+				</li>
+				<li>
+					<a href="https://www.facebook.com/sharer.php?u=https://braacket.com/league/ResurrectedUltimate" target="_blank" rel='noreferrer' class="btn btn-facebook">
+						<i class='fa fa-facebook-square fab fa-fw'></i>					</a>
+				</li>
+				<li>
+					<a href="https://twitter.com/home?status=https://braacket.com/league/ResurrectedUltimate" target="_blank" rel='noreferrer' class="btn btn-twitter">
+						<i class='fa fa-twitter-square fab fa-fw'></i>					</a>
+				</li>
+							</ul>
+	</div>
+	</div></div>
+<div class='game_bg game_bg-ssbu' style="background-image:url('/assets/images/game/ssbu/bg/main.jpg?v=1.2.1.2')"></div>			</div>
+		</div>
+	</div>
+<div id='content_nav' class="nav my-navsub navbar-default ">
+	<div class='my-navsub-overflow my-navsub-overflow-left'></div>
+	<div class="my-navsub-container">
+		<div class='container'>
+			<ul class='nav navbar-nav my-navsub-ul navbar-left'>
+									<li class=' text-center'>
+						<a href='/league/ResurrectedUltimate/dashboard' >
+															<span class='my-navsub-icon'>
+									<i class='fa fa-cube fa-fw '></i>								</span>
+														<div class='my-navsub-label'>
+								        							<span class='my-navsub-label_base_page'>
+        								league        							</span>
+    							    							<span class='my-navsub-label_page'>
+    							Dashboard    							</span>
+    						</div>
+													</a>
+									<li class=' active text-center'>
+						<a href='/league/ResurrectedUltimate/player' >
+															<span class='my-navsub-icon'>
+									<i class='fa fa-users fa-fw '></i>								</span>
+														<div class='my-navsub-label'>
+								        							<span class='my-navsub-label_base_page'>
+        								league        							</span>
+    							    							<span class='my-navsub-label_page'>
+    							Players    							</span>
+    						</div>
+													</a>
+									<li class=' text-center'>
+						<a href='/league/ResurrectedUltimate/tournament' >
+															<span class='my-navsub-icon'>
+									<i class='fa fa-sitemap fa-fw '></i>								</span>
+														<div class='my-navsub-label'>
+								        							<span class='my-navsub-label_base_page'>
+        								league        							</span>
+    							    							<span class='my-navsub-label_page'>
+    							Tournaments    							</span>
+    						</div>
+													</a>
+									<li class=' text-center'>
+						<a href='/league/ResurrectedUltimate/ranking' >
+															<span class='my-navsub-icon'>
+									<i class='fa fa-trophy fa-fw '></i>								</span>
+														<div class='my-navsub-label'>
+								        							<span class='my-navsub-label_base_page'>
+        								league        							</span>
+    							    							<span class='my-navsub-label_page'>
+    							Ranking    							</span>
+    						</div>
+													</a>
+									<li class=' text-center'>
+						<a href='/league/ResurrectedUltimate/head2head' >
+															<span class='my-navsub-icon'>
+									<span class='glyphicon glyphicon-fire  fa-fw '></span>								</span>
+														<div class='my-navsub-label'>
+								        							<span class='my-navsub-label_base_page'>
+        								league        							</span>
+    							    							<span class='my-navsub-label_page'>
+    							Head 2 Head    							</span>
+    						</div>
+													</a>
+									<li class=' text-center'>
+						<a href='/league/ResurrectedUltimate/stats' >
+															<span class='my-navsub-icon'>
+									<i class='fa fa-line-chart fa-fw '></i>								</span>
+														<div class='my-navsub-label'>
+								        							<span class='my-navsub-label_base_page'>
+        								league        							</span>
+    							    							<span class='my-navsub-label_page'>
+    							Stats    							</span>
+    						</div>
+													</a>
+							</ul>
+		</div>
+	</div>
+	<div class='my-navsub-overflow my-navsub-overflow-right'></div>
+</div>	<div id='content_body' class='my-navsub-active'>
+		<div class='container'>
+			<div class='ads ads-mobile-top'>
+	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+	<!-- Braacket-mobile-top -->
+	<ins class="adsbygoogle adsbygoogle-mobile-top"
+	     style="display:block; max-height:60px;"
+	     data-ad-client="ca-pub-6977339199743617"
+	     data-ad-slot="2454238061"
+	     data-ad-format="auto"></ins>
+	<script>
+		(adsbygoogle = window.adsbygoogle || []).push({});
+	</script>
+</div><div class='ads ads-side ads-side-right'>
+	<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+	<!-- Braacket-desktop-side-right -->
+	<ins class="adsbygoogle"
+	     style="display:block"
+	     data-ad-client="ca-pub-6977339199743617"
+	     data-ad-slot="8357301433"
+	     data-ad-format="vertical"></ins>
+	<script>
+		(adsbygoogle = window.adsbygoogle || []).push({});
+	</script>
+</div><section class='hidden-embed'>
+	<div class='panel panel-default my-panel-title my-box-shadow'>
+		<div class='panel-heading'>
+			Player list <i class='fa fa-list pull-right fa-flip-horizontal fa-fw'></i>			<div class='text-small text-light text-transform-none'>
+				Find players using filters or name
+			</div>
+		</div>
+	</div>
+</section>
+<section>
+	<div class='search-box search-box-text'>
+		<form method='GET' id='search_form' action=''>
+			<input type='hidden' id='rows' name='rows' value='200'>
+						<div class='search-filters'>
+	<div class='row'>
+			<div class='col-xs-12 col-sm-6 col-lg-3'>
+			<div class='form-group input-group '>
+				<label class='input-group-addon' for='country'>
+					Country				</label>
+				<select class='form-control my-select-alloption ' id='country' name='country'>
+											<option value='' class='text-color-light'>All</option>
+																<option value='none' class='text-color-light' >None</option>
+									    				</select>
+			</div>
+		</div>
+			<div class='col-xs-12 col-sm-6 col-lg-3'>
+			<div class='form-group input-group '>
+				<label class='input-group-addon' for='game_character'>
+					Character				</label>
+				<select class='form-control my-select-alloption ' id='game_character' name='game_character'>
+											<option value='' class='text-color-light'>All</option>
+																<option value='none' class='text-color-light' >None</option>
+									    			    		<option value='banjo-kazooie' >Banjo-Kazooie</option>
+			       			    		<option value='bayonetta' >Bayonetta</option>
+			       			    		<option value='bowser' >Bowser</option>
+			       			    		<option value='bowser_jr' >Bowser Jr</option>
+			       			    		<option value='byleth' >Byleth</option>
+			       			    		<option value='captain_falcon' >Captain Falcon</option>
+			       			    		<option value='chrom' >Chrom</option>
+			       			    		<option value='cloud' >Cloud</option>
+			       			    		<option value='corrin' >Corrin</option>
+			       			    		<option value='daisy' >Daisy</option>
+			       			    		<option value='dark_pit' >Dark Pit</option>
+			       			    		<option value='darksamus' >Dark Samus</option>
+			       			    		<option value='diddy_kong' >Diddy Kong</option>
+			       			    		<option value='donkey_kong' >Donkey Kong</option>
+			       			    		<option value='dr_mario' >Dr Mario</option>
+			       			    		<option value='duck_hunt' >Duck Hunt</option>
+			       			    		<option value='falco' >Falco</option>
+			       			    		<option value='fox' >Fox</option>
+			       			    		<option value='ganondorf' >Ganondorf</option>
+			       			    		<option value='greninja' >Greninja</option>
+			       			    		<option value='hero' >Hero</option>
+			       			    		<option value='ice_climbers' >Ice Climbers</option>
+			       			    		<option value='ike' >Ike</option>
+			       			    		<option value='incineroar' >Incineroar</option>
+			       			    		<option value='inkling' >Inkling</option>
+			       			    		<option value='isabelle' >Isabelle</option>
+			       			    		<option value='jigglypuff' >Jigglypuff</option>
+			       			    		<option value='joker' >Joker</option>
+			       			    		<option value='kazuya' >Kazuya</option>
+			       			    		<option value='ken' >Ken</option>
+			       			    		<option value='king_dedede' >King Dedede</option>
+			       			    		<option value='kingkrool' >King K Rool</option>
+			       			    		<option value='kirby' >Kirby</option>
+			       			    		<option value='link' >Link</option>
+			       			    		<option value='little_mac' >Little Mac</option>
+			       			    		<option value='lucario' >Lucario</option>
+			       			    		<option value='lucas' >Lucas</option>
+			       			    		<option value='lucina' >Lucina</option>
+			       			    		<option value='luigi' >Luigi</option>
+			       			    		<option value='mario' >Mario</option>
+			       			    		<option value='marth' >Marth</option>
+			       			    		<option value='mega_man' >Mega Man</option>
+			       			    		<option value='meta_knight' >Meta Knight</option>
+			       			    		<option value='mewtwo' >Mewtwo</option>
+			       			    		<option value='mii_brawler' >Mii Brawler</option>
+			       			    		<option value='mii_gunner' >Mii Gunner</option>
+			       			    		<option value='mii_swordfighter' >Mii Swordfighter</option>
+			       			    		<option value='minmin' >Min Min</option>
+			       			    		<option value='mr_game_and_watch' >Mr Game And Watch</option>
+			       			    		<option value='ness' >Ness</option>
+			       			    		<option value='olimar' >Olimar</option>
+			       			    		<option value='pac_man' >Pac Man</option>
+			       			    		<option value='palutena' >Palutena</option>
+			       			    		<option value='peach' >Peach</option>
+			       			    		<option value='pichu' >Pichu</option>
+			       			    		<option value='pikachu' >Pikachu</option>
+			       			    		<option value='piranha_plant' >Piranha Plant</option>
+			       			    		<option value='pit' >Pit</option>
+			       			    		<option value='pokemon_trainer' >Pokemon Trainer</option>
+			       			    		<option value='pyramythra' >Pyra / Mythra</option>
+			       			    		<option value='random' >Random</option>
+			       			    		<option value='richter' >Richter</option>
+			       			    		<option value='ridley' >Ridley</option>
+			       			    		<option value='rob' >Rob</option>
+			       			    		<option value='robin' >Robin</option>
+			       			    		<option value='rosalina_and_luma' >Rosalina And Luma</option>
+			       			    		<option value='roy' >Roy</option>
+			       			    		<option value='ryu' >Ryu</option>
+			       			    		<option value='samus' >Samus</option>
+			       			    		<option value='sephiroth' >Sephiroth</option>
+			       			    		<option value='sheik' >Sheik</option>
+			       			    		<option value='shulk' >Shulk</option>
+			       			    		<option value='simon' >Simon</option>
+			       			    		<option value='snake' >Snake</option>
+			       			    		<option value='sonic' >Sonic</option>
+			       			    		<option value='sora' >Sora</option>
+			       			    		<option value='steve' >Steve</option>
+			       			    		<option value='terry' >Terry</option>
+			       			    		<option value='toon_link' >Toon Link</option>
+			       			    		<option value='villager' >Villager</option>
+			       			    		<option value='wario' >Wario</option>
+			       			    		<option value='wii_fit_trainer' >Wii Fit Trainer</option>
+			       			    		<option value='wolf' >Wolf</option>
+			       			    		<option value='yoshi' >Yoshi</option>
+			       			    		<option value='young_link' >Young Link</option>
+			       			    		<option value='zelda' >Zelda</option>
+			       			    		<option value='zero_suit_samus' >Zero Suit Samus</option>
+			       				</select>
+			</div>
+		</div>
+	</div>
+</div><div class="input-group form-group search-text my-input-cleaner ">
+	<label class='input-group-addon' for='search'>
+		 Name	</label>
+	<input type="text" class="form-control" name='search' id='search' placeholder="" value=''>
+	<span class='input-cleaner' style="display:none;"><i class='fa fa-times '></i></span>
+	<div class='input-group-btn' data-toggle="popover" data-placement="bottom" title="Search help" data-content="You can search for multiple Name by separating them with ; (semicolon).">
+		<div class="btn btn-default">
+			<i class='fa fa-question-circle fa-fw'></i>		</div>
+	</div>
+	<div class="input-group-btn">
+		<button class="btn btn-default" type="submit">
+			<i class='fa fa-search fa-fw'></i>       		Search
+       	</button>
+    </div>
+</div>					</form>
+	</div>
+</section><section>
+			<div class='panel panel-default my-panel-collapsed my-box-shadow'>
+			<div class='panel-body'>	
+				<table class='table table-hover my-table-checkbox'>
+					<thead class='heading'>
+						<tr>
+							<th class='ellipsis'>Player</th>
+							<th></th>
+							<th class='text-center min empty'></th>
+    												</tr>
+											</thead>
+					<tbody>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/6A463B79-7D55-4155-AA3C-2D9826645D69'>915</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Ken' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/ken.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/1B4AF337-A9B0-4C0A-801D-841040D8AB20'>Adek</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/D2ACD420-DCD4-4737-AA45-9F7058647BD5'>ajv</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Link' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/link.png'/><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Young Link' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/young_link.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/12CAE395-6D81-420A-AD70-455567AAE73A'>Al Vore</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/E76093D1-2954-4640-BE9B-67E14A0402AC'>Anthony</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/1D47185C-67F4-47F2-99E6-4D9BF1CDCC25'>Azimuth</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Samus' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/samus.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/99B4F8AB-8314-45E5-9252-A407E15C03DD'>BadNewsBear</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Snake' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/snake.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/B13A3DF8-5976-4A1B-815E-33C833C267C8'>BESITOS</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Richter' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/richter.png'/><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Simon' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/simon.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/1FDF8020-5AE6-4AA8-8C91-03554D3BD7B8'>BexXx</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/DA1246F7-AEDA-4E13-AB8E-F862DE8F298F'>Bonesaw</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/AABF3C6D-0976-4240-9D3C-DABFAE2B39C9'>Bonzi77</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/53F99C1F-667C-4CAA-82BF-D2053D63BDB7'>Bueno</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Pikachu' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/pikachu.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/884173E3-5A8C-4A01-A83C-9771351D684A'>BusDriver64</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/BE737A56-8932-46EF-816D-7C480BA8CC18'>Chaii</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/4210A709-13DC-44C3-975D-F323A0882E85'>ChickyNuggzz</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Pichu' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/pichu.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/0F84A87B-F5A4-4E63-ACDB-F4DD32FDC522'>Cinder</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Rob' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/rob.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/B6E015C1-3A5E-4098-B8CF-12FFB5B5E7E9'>Clearly</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/A37952B9-67ED-41FB-8658-3A41382D31F4'>Creps</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Palutena' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/palutena.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/37958A2C-A60E-4463-9620-68E5569F1990'>DallasGanon</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/90074D89-A66D-45BB-B30C-493BB03E8741'>DEDEDE</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='King Dedede' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/king_dedede.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/78D209C5-7B93-4B38-A568-F72EC0B0B1F1'>DeLo</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/FA2DDB44-555B-4EDC-A4C9-C381FAEAB1B6'>Demurak</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/7B850D9F-B552-42D3-AD20-8AE5C7FE3460'>DIO</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/558C20D8-5995-4B2E-98DA-4B3A19F5F868'>duallium</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/920738E7-F63F-4968-BB9A-BA93318F784A'>Edgar</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/681096CC-EC1F-46BD-AF39-9FD2DF12C1F9'>Element</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/5C061B66-29BE-42A0-8856-2F7E4ADBCA09'>ezX</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/96256F12-FC33-44AC-8C1F-4B6046382489'>Fairi</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/1C8EC4F5-F3AC-46CD-BEDD-4951E6161104'>FalseSheppard</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/1EA11011-2219-4631-8D3E-EDB53474BDF8'>Fantom</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Cloud' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/cloud.png'/><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Greninja' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/greninja.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/62FC023A-DBF7-4C90-ADA8-285F0E15FD77'>Fertility</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/7472F6DF-531C-4D0A-9D61-086C4F4A8E7C'>Firefox</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Wolf' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/wolf.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/B34E0E4C-971F-46BC-B710-B9FFF26673D4'>Fritz</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/16B64231-22D0-45E1-92F2-58148B8C2EB1'>Gallium</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/DE122DA1-BE53-4475-9555-6A20231FCB69'>geo</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/C2BCDEBC-D7F8-47F6-867E-3FF02C9CD070'>GG</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/4EA7038A-74D0-4786-8DE8-8616F53C6D1A'>GoldnChi1d</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/AA8C6A78-DB62-4AFA-A3CA-7B5B60E7F129'>GS-Lloyd</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Cloud' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/cloud.png'/><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Donkey Kong' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/donkey_kong.png'/><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Joker' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/joker.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/45F1B2D2-B41F-410B-AFFC-B79EF8866AF4'>Hawks</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Luigi' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/luigi.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/70A791DB-4811-46FC-8696-6F58970F23C6'>Hion</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/8A1C72B7-D9EA-4DF4-93BE-5A493049C255'>homieJ</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/28883F70-60D1-4BD8-8743-E835095958B6'>JackTheReaper</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/E876898B-38C6-4ED3-8EBF-92467CF095CB'>jd</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Dark Samus' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/darksamus.png'/><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Samus' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/samus.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/71319F20-9594-48D5-A724-14BCB4F017E7'>John</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/8F898961-BAB0-4B48-91DB-4B4BC31E6540'>JoJo</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Ridley' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/ridley.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/9D695921-B6B9-4016-B33B-2A728DEA4F15'>Jonathan</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/1EE29568-E507-453A-B186-50AB2BA71037'>Josh</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Pichu' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/pichu.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/83D65C30-42C7-47E8-91D7-7B854C3FC5D5'>Joshii</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/31983782-8C56-42B7-B95A-8EC25EC7BDBD'>Kaiba</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/5879C2B6-31FD-418A-BD07-2A0BD386A6A2'>Kaleb</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/F24CB534-FF7A-491D-B729-77824E6B1535'>KalebKing!</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/E7531708-59C0-4F53-8FBD-95851DAC0948'>Kcakes</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/037A67B2-76ED-49FA-B33D-C78FB68BF330'>KVS</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/D6891CD9-DDC5-46E6-9821-AC89FD46FFC9'>Labree</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Link' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/link.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/F02F1CE5-C585-4CE5-974B-8C5B9109AC67'>Lance</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/C0C26A61-013A-4581-986E-DD92289625DB'>Leandra</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/0C346C2D-DEED-4A74-97A2-1BE1C7EE4705'>Lee</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Wolf' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/wolf.png'/><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Bowser' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/bowser.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/8EF9645D-9A35-4E31-917D-C0DD377F8654'>Low Tier Dallas</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/1555D1C3-EBB9-49E6-AB0D-30AA9A7405D5'>Matt</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Greninja' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/greninja.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/888CA263-61E8-4944-9B13-3E8A8E51B538'>Mattatat</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/7334F043-1A5D-4F4B-BB6F-ECEB3C7F383B'>Max</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/900A7357-C5F4-4D33-9B19-0FD2BB91E979'>MaZ</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/B4E6C527-2D40-41C3-B20B-983986E18395'>MiLD</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Snake' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/snake.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/A800919E-CB9A-409B-A453-5DCD960F33FF'>Minus</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Greninja' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/greninja.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/8AD933A1-7A2E-4763-9A8F-34230DFD571E'>MisakiWeaboo</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/0A2F79D2-F653-4CAA-A8A5-5E6235537585'>Mr Sir</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/B3469C2D-4E7B-4FFA-AA88-7668A6C461C3'>Mr. Clam</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/CAA09D88-C40E-4D32-A766-393F8BECC151'>Mrrrr</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Mario' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/mario.png'/><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Marth' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/marth.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/7082B01F-E03D-42C2-9948-BB5806934895'>mXdinska</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/E15D9C64-5B24-44E6-927B-062D11C1F2DE'>Nacho</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/D22B6672-D448-417F-93CE-299B118571C4'>Nick</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/CECA4067-F1F5-4755-B8A2-E0107DB3B7F7'>Nick Felty</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/BB46D634-4FAE-49E0-88BF-1D7779F468A3'>Noah</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/03743291-4C17-4AB3-A99B-D3FE5511D8D9'>Nut</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/6FCAF56F-836E-4AE5-B768-AB0D24873316'>Oran</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/F1891269-EBF3-45D0-B33F-00A9E83D8769'>Orange Juice</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/F8D4F90F-9D82-4995-8109-E2FF603CA846'>Orcastraw</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Bayonetta' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/bayonetta.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/864C7A74-F5E2-4817-8DD6-96782FA7FC7E'>Panda</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/82E47610-AD81-4639-AFCA-BCAF3BB4694D'>PeachTea</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='King Dedede' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/king_dedede.png'/><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Meta Knight' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/meta_knight.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/5F922307-9879-4514-A0B8-60F9BF33E4A1'>Pichu Main</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/713A382A-0754-4DBA-8116-8D3C34CFD268'>Pichumain</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/92165590-106C-40FA-8DD5-7A71B1D4CF9C'>Reatret</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/0EED82F4-69F5-4ED8-80A1-83BC96E28FB7'>Red</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/5BBF003E-F4EE-4BC6-8D44-365D26B06B63'>Red Menace</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Dark Pit' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/dark_pit.png'/><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Pit' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/pit.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/6B1D68B6-07CA-405E-B8B1-8BCAEFE6C3DF'>Res</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/784F0A34-B00F-4431-8702-E0D363CE2952'>riley</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/CDAA458C-1D58-401D-81CB-E6E0E2557729'>Rob</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/EFA0324C-A6C2-4306-BABF-7FF50DAAE14B'>Roberto</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/8DB19668-61B5-4C0E-AAEF-1A0B3A24DA86'>Rogue</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/29D7ABC4-C869-44A5-A668-E0850415EAA7'>Ruskinurd</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Ness' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/ness.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/40827948-35EA-4F20-B669-470A6C979FB0'>Samwise</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/30F221AC-D283-4AD3-B926-145EB9A6211E'>Savage</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Palutena' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/palutena.png'/><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Snake' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/snake.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/93D54FA7-743E-4786-9586-B0CE28EA20CA'>Sharnieth</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/C6635BF2-66C3-4445-B395-494C6A84AA7D'>Six</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/B6EEA3E4-FC6B-49A2-AF37-6C91F351CEA0'>Smoto</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/8DF0BFDA-B9A5-4FBD-98CC-AF6752AA38E7'>Tamashii~</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/AA6A0385-3DEA-448F-A8ED-574266DF6764'>Thexothen</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/47C22F3B-AD81-4C68-AF04-31F2E7016654'>Tio</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Donkey Kong' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/donkey_kong.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/02899C00-F7A5-4312-BEDF-9871B716FA18'>TR | GUTS</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/91E467B6-FBAE-4B0A-959A-0CFF4EEE5FB3'>Waltz</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Mega Man' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/mega_man.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/EA6A08BF-53C5-4A97-9DD6-38C6E00250C5'>Xenith</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/BC34B1D0-362A-4662-B65F-6F363252023E'>Yiff</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='King Dedede' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/king_dedede.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/3BA3DC9B-BCA3-4156-8E65-A6DF762EEC2B'>Z3rg3m3n</a>
+    					    	  			<span class="game_characters"><img alt='' class='game_character game_character-ssbu' data-toggle='tooltip' data-placement='top' title='Young Link' data-animation='false' data-container='body' src='/assets/images/game/ssbu/characters/young_link.png'/></span>    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/EB303513-F633-4AB4-91F3-2F08893822D2'>Zach</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/368CD52F-AED7-4C84-8086-F7C4A23B0ED7'>Zen</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+													<tr>
+																	<td class='ellipsis'>
+										    					    	  			<a href='/league/ResurrectedUltimate/player/8CB1668D-35C0-4454-82B9-50A9A95B8918'>Zergman</a>
+    					    	  			    					    	  			    										    					    	  											</td>
+									<td class='nowrap text-right'>
+																			</td>
+									<td class='min text-left empty'>
+																			</td>
+        																						</tr>
+										</tbody>
+			</table>
+		</div>
+	</div>
+	</section>
+
+	<section class='section-md-separator'>
+		<div class='search-box'>
+			<div class="row">
+									<div class='col-xs-12 col-sm-6 col-md-4'>
+							<div class="form-group text-center search-bottom-list">
+		<div class="form-group input-group ">
+			<label class="input-group-addon " for='search-row_numbers'>
+				Rows  
+			</label>
+			<select id='search-row_numbers' class='form-control'>
+									<option value='20' >20</option>
+									<option value='50' >50</option>
+									<option value='100' >100</option>
+									<option value='200' selected>200</option>
+							</select>
+		</div>
+	</div>
+					</div>
+								<div class='col-xs-12 col-sm-12 col-md-4'>
+					<div class='search-pagination'>
+	<div class='input-group form-group'>
+		<label class='input-group-addon' for='search-page'>
+			Page
+		</label>
+		<select class='form-control' id='search-page'>
+	    		  			<option selected data-href='?rows=200&cols=&page=1&page_cols=1&country=&game_character=&search='>1</option>
+	  			  	</select>
+	 	<div class='input-group-addon'>
+	  		/ 1		</div>
+    			<div class='input-group-btn'>
+			<a class='btn btn-default' href="?rows=200&cols=&page=1&page_cols=1&country=&game_character=&search=" disabled aria-label='Go to page 1'>
+				<i class='fa fa-chevron-left fa-fw'></i>    		</a>
+		</div>
+    	    	<div class='input-group-btn'>
+			<a class='btn btn-default' href="?rows=200&cols=&page=1&page_cols=1&country=&game_character=&search=" disabled aria-label='Go to page 1'>
+				<i class='fa fa-chevron-right fa-fw'></i>			</a>
+		</div>
+	</div>
+</div>				</div>
+				<div class='col-xs-12 col-sm-12 col-md-4'>
+					<div class='input-group form-group'>
+	<div class='input-group-addon'>
+		Displaying
+	</div>
+	<div class='input-group-addon my-input-group-addon '>
+		 1 to 106 of 106 
+		 Rows
+	</div>
+</div>				</div>
+			</div>
+		</div>
+	</section>
+		</div>
+	</div>
+       		<div id='modal-embed' class='modal fade my-modal'  tabindex='-1' role='dialog' aria-hidden='true'>
+	<div class='modal-dialog'>
+		<div class='modal-content'>
+			<div class='modal-header'>
+				<button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>
+				<div class='modal-title'><span class='text-bold'>Embed</span> / Get Code</div>
+      		</div>
+			<div class='modal-body'>
+				<div class='panel panel-default my-box-shadow'>
+					<div class='panel-heading'>
+						Embed code
+						<i class='fa fa-code fa-fw pull-right'></i>					</div>
+					<div class='panel-body'>
+						<label for="embed_iframe">Copy paste this code into your website</label>
+						<div class="form-group">
+							<textarea id='embed_iframe' class="form-control"></textarea>
+						</div>
+						<hr>
+						<label class="control-label">
+							<span class="my-label-infos">
+								<span class="text-bold">Note</span>: you can edit the <i>height</i> and <i>width</i> parameters according to your needs.
+							</span>
+						</label>
+					</div>
+				</div>
+		   	</div>
+		   	<div class='modal-footer'>
+				<button type='button' class='btn btn-default cancel' data-dismiss='modal'><i class='fa fa-times fa-fw'></i> Close</button>
+			</div>
+		</div>
+	</div>
+</div><div id='league_player_modal_stats' class='modal fade'  tabindex='-1' role='dialog'  aria-hidden='true'>
+	<div class='modal-dialog'>
+		<div class='modal-content'>
+			<div class='modal-header'>
+				<button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>
+				<div class='modal-title'>Player / <span class='text-bold'>Stats</span></div>
+      		</div>
+			<div class='modal-body'>
+				<div class='panel panel-default my-panel-title my-box-shadow'>
+					<div class="panel-heading text-center text-transform-none">
+						<h4>
+							<a class='player_label href-external' href=''>
+								<span></span>
+								<i class='fa fa-external-link-square fa-fw'></i>							</a>
+						</h4>
+					</div>
+				</div>
+				<div class='panel panel-default my-box-shadow'>
+					<div class="panel-heading">
+						Ranking
+						<i class='fa fa-trophy pull-right fa-fw'></i>					</div>
+					<div class="panel-body">
+						<div class='my-dashboard-values-main'>
+							<span class='player_ranking_rank'></span> / <span class='player_ranking_total'></span>
+						</div>
+						<div class='my-dashboard-values-sub'>
+							<div>Points</div>
+							<div>
+								<span class='player_ranking_score'></span>
+							</div>
+						</div>
+					</div>
+				</div>
+				<div class='panel panel-default my-panel-collapsed my-box-shadow'>
+					<div class="panel-heading">
+						Matches statistics (<span class='player_stats_matches'></span>)
+						<i class='fa fa-shield pull-right fa-fw'></i>					</div>
+					<div class="panel-body">
+						<div class='alert'>
+							<div class='my-dashboard-values-main'>
+								<span class='player_stats_win_percent'></span><span>%</span> Win rate
+							</div>
+						</div>
+					</div>
+					<div class='panel-body'>
+						<table class='table table-bordered'>
+							<thead>
+								<tr>
+									<th colspan='2'>Result</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class='col-xs-8'>Win</td>
+									<td class='col-xs-4 text-right text-bold player_stats_win'></td>
+								</tr>
+								<tr>
+									<td class='col-xs-8'>Draw</td>
+									<td class='col-xs-4 text-right text-bold player_stats_draw'></td>
+								</tr>
+								<tr>
+									<td class='col-xs-8'>Lose</td>
+									<td class='col-xs-4 text-right text-bold player_stats_lose'></td>
+								</tr>
+							</tbody>
+							<thead>
+								<tr>
+									<th colspan='2'>Score</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr>
+									<td class='col-xs-8'>+</td>
+									<td class='col-xs-4 text-right text-bold player_stats_plus'></td>
+								</tr>
+								<tr>
+									<td class='col-xs-8'>-</td>
+									<td class='col-xs-4 text-right text-bold player_stats_minus'></td>
+								</tr>
+								<tr>
+									<td class='col-xs-8'>+/-</td>
+									<td class='col-xs-4 text-right text-bold player_stats_diff'></td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+				<div class='panel panel-default my-panel-collapsed my-box-shadow'>
+					<div class="panel-heading">
+						Tournaments history  (<span class='player_tournament_history_total'></span>)
+						<i class='fa fa-sitemap pull-right fa-fw'></i>					</div>
+					<div class='panel-body'>
+						<table class='table table-hover table-bordered'>
+							<thead>
+								<tr>
+									<th class='col-xs-8'>Name</th>
+									<th class='col-xs-4 text-right'>Rank</th>
+								</tr>
+							</thead>
+							<tbody>
+								<tr class='player_tournament_history_skel'>
+									<td class='col-xs-8 ellipsis player_tournament_history_label'><a href=''></a></td>
+									<td class='col-xs-4 text-right'>
+										<span class='text-bold player_tournament_history_rank'></span>/<span class='player_tournament_history_rank_total'></span>
+									</td>
+								</tr>
+							</tbody>
+						</table>
+					</div>
+				</div>
+		   	</div>
+		   	<div class='modal-footer'>
+				<button data-dismiss='modal' class='btn btn-default cancel ' type='button'><i class='fa fa-times fa-fw'></i> Close</button>
+			</div>
+		</div>
+	</div>
+</div><div class='container'>
+	<div class='ads ads-desktop-bottom'>
+		<script async src="//pagead2.googlesyndication.com/pagead/js/adsbygoogle.js"></script>
+		<!-- Braacket-desktop-bottom -->
+		<ins class="adsbygoogle adsbygoogle-desktop-bottom"
+		     style="display:block"
+		     data-ad-client="ca-pub-6977339199743617"
+		     data-ad-slot="7223101590"
+		     data-ad-format="auto"></ins>
+		<script>
+			(adsbygoogle = window.adsbygoogle || []).push({});
+		</script>
+	</div>
+</div>
+<div id="message_send_modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<div class="modal-title">
+					Account / Message / <span class='text-bold'>Send</span>
+				</div>
+      		</div>
+      						<div class="modal-body">
+					<div class='alert alert-danger text-center'>
+						<h5>
+							<i class='fa fa-ban fa-fw'></i> AUTHENTIFICATION REQUIRED
+						</h5>
+						<p>You must be logged in to send a message.</p>
+						<br>
+						<a href='#' class='btn btn-danger' data-target="#login_modal" data-toggle="modal" > 
+							<span class='text-bold'><span class='glyphicon glyphicon-log-in fa-fw'></span> Login</span>
+						</a>
+						<a href='/auth/create' class='btn btn-danger'> 
+							<span class='text-bold'><span class='glyphicon glyphicon-log-out fa-fw'></span> Create</span> an account
+						</a>
+					</div>
+				</div>
+				<div class="modal-footer">
+		   			<button data-dismiss='modal' class='btn btn-default cancel ' type='button'><i class='fa fa-times fa-fw'></i> Cancel</button>
+		   		</div>
+		   		</div>
+	</div>
+</div><div id="login_modal" class="modal fade" tabindex="-1" role="dialog" aria-hidden="true">
+	<div class="modal-dialog">
+		<div class="modal-content">
+			<div class="modal-header">
+				<button type="button" class="close" data-dismiss="modal" aria-hidden="true">&times;</button>
+				<div class="modal-title">Account / <span class='text-bold'>Login</span></div>
+      		</div>
+			<div class="modal-body">
+				<div id='auth_login_panel'>
+	<form id='auth_login'  method='POST' action='/auth/process/login' class='my-form-dyn'>
+	<input type="hidden" id='redirect' name='redirect' value='' class="form-control">
+	<div class='panel panel-default my-box-shadow'>
+		<div class='panel-body'>
+			<!-- username -->
+			<div class="form-group">
+				<label class='label-control' for='username'>Username</label>
+				<div class='input-group'>
+					<div class="input-group-addon"><span class='glyphicon glyphicon-user fa-fw'></span></div>
+					<input type="text" autofocus required id='username' name='username' class="form-control">
+				</div>
+			</div>
+			<!-- password -->
+			<div class="form-group">
+				<label class='label-control' for='password'>Password</label>
+				<div class='input-group'>
+					<div class="input-group-addon"><i class='fa fa-key fa-fw'></i></div>
+					<input type="password" required id='password' name='password' class="form-control">
+				</div>
+			</div>
+		</div>
+	</div>
+	<button type="submit" class="btn btn-primary btn-block btn-shadow"><span class='text-bold'><span class='glyphicon glyphicon-log-in fa-fw'></span> Login</span></button>
+</form>		<hr>
+	   	<div class='text-center'>
+							<a href='/auth/create'>Create an account</a><br>
+							 <a href='/auth/password_recovery'>Recovery your password</a><br>
+					</div>
+		<br>
+</div>		   	</div>
+		</div>
+	</div>
+</div>		</div>
+
+		<!--  Footer -->
+		<div id='footer'>
+			<div class='container'>
+	<div id='footer-body'>
+		<div class='pull-left text-left'>
+			© 2026 Braacket.com<br>
+			v. 1.2.1.2					</div>
+		<div class='pull-right text-right'>
+			<ul class='my-ul my-ul-separator my-ul-xs'>
+				<li>
+					<a href='/usermanual'>User manual</a>
+				</li>
+				<li>
+					<a href='/legal/terms_and_conditions'>Terms and Conditions</a>
+				</li>
+				<li>
+					<a href='/legal/privacy_policy'>Privacy Policy</a>
+				</li>
+				<li>
+					<a href='/contact'>Contact</a>
+				</li>
+			</ul>
+		</div>
+		<div class='clearfix'></div>
+	</div>
+</div>		</div>
+		
+		<div id='panel' class='panel-theme alert-dismissible' role='alert'>
+	<div class='container'>
+		<div id='panel_content' class='alert'></div>
+		<div id='panel_toggle'>
+			<button type="button" class="close" data-dismiss="alert" aria-label="Close">
+				<span aria-hidden="true">&times;</span>
+			</button>
+		</div>
+	</div>
+</div>    	<div id='modal-confirm' class='modal fade my-modal'  tabindex='-1' role='dialog' aria-hidden='true'>
+	<div class='modal-dialog'>
+		<div class='modal-content'>
+			<div class='modal-header'>
+				<button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>
+				<div class='modal-title'><span class='text-bold'>Confirm</span></div>
+      		</div>
+			<div class='modal-body'>
+				<div class='panel panel-default my-box-shadow'>
+					<div class='panel-body'>
+						<span class='icon'>&nbsp;</span>
+						<span class='message'></span>
+					</div>
+				</div>
+		   	</div>
+		   	<div class='modal-footer'>
+				<button type='button' class='btn btn-default cancel' data-dismiss='modal'><i class='fa fa-times fa-fw'></i> Cancel</button>
+			    <a class='action btn btn-primary'><i class='fa fa-check fa-fw'></i> <span class='action_label'>Ok</span></a>
+			</div>
+		</div>
+	</div>
+</div>	    <div id='modal-confirm-double' class='modal fade my-modal'  tabindex='-1' role='dialog' aria-hidden='true'>
+	<div class='modal-dialog'>
+		<div class='modal-content'>
+			<form id='modal-confirm-double-form' method='POST' action='#' class='my-form-dyn'>
+				<div class='form-values'>
+				
+				</div>
+				<div class='modal-header'>
+					<button type='button' class='close' data-dismiss='modal' aria-hidden='true'>&times;</button>
+					<div class='modal-title'><span class='text-bold'>Confirm</span></div>
+	      		</div>
+				<div class='modal-body'>
+					<div class='panel panel-default panel-danger my-box-shadow'>
+						<div class='panel-heading'>
+							WARNING: DANGEROUS ACTION
+							<i class='fa fa-exclamation-triangle pull-right'></i> 
+						</div>
+						<div class='panel-body'>
+							<div class='form-group'>
+								<div class='message text-danger'></div>
+							</div>
+							<div class='form-group'>
+								<label class='control-label' for='confirm-text'>
+									<span class='message-input text-danger'></span>
+									<span class="my-label-infos">
+										Enter "yes" in the input field bellow.
+									</span>
+								</label>
+								<input type="text" id="confirm-text" name="confirm-text" required class="form-control">
+							</div>
+						</div>
+					</div>
+			   	</div>
+			   	<div class='modal-footer'>
+					<button type='button' class='btn btn-default cancel' data-dismiss='modal'><i class='fa fa-times fa-fw'></i> Cancel</button>
+				    <button type='submit' class='action btn btn-primary'><i class='fa fa-check fa-fw'></i> <span class='action_label'>Ok</span></button>
+				</div>
+			</form>
+		</div>
+	</div>
+</div>	      	
+	    			<script type="text/javascript" src="/assets/core/jquery/js/jquery-3.2.1.min.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/jquery/js/jquery.mobile.custom.min.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/bootstrap/js/bootstrap.min.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/bootstrap/plugin/datetimepicker/js/moment-with-locales.min.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/bootstrap/plugin/datetimepicker/js/bootstrap-datetimepicker.min.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/bootstrap/plugin/table-responsive.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/jquery/plugin/jquery.utilities.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/jquery/plugin/jquery.cookie.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/jquery/plugin/jquery.form.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/jquery/plugin/jquery.table.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/jquery/plugin/jquery.toggle-radio.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/jquery/plugin/jquery.timer.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/jquery/plugin/jquery.scrollfollow.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/jquery/plugin/loading/js/jquery.loading.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/jquery/plugin/panel/js/jquery.panel.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/jquery/plugin/xhr/js/jquery.xhr.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/_my/js/fix.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/_my/js/helper.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/_my/js/modal.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/_my/js/share.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/_my/js/loader.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/core/_my/js/google_analytics.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/libraries/navsub/js/navsub.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/libraries/auth/js/auth.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/libraries/embed/js/embed.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/libraries/search/js/search.js?v=1.2.1.2"></script>
+					<script type="text/javascript" src="/assets/js/league/league.public.player.js?v=1.2.1.2"></script>
+				
+					<script type="text/javascript">
+
+				$.myReCaptcha = {}
+				
+				var ReCaptchaCallback = function(){
+				
+					$('.my-recaptcha').each(function(){
+						$.myReCaptcha[$(this).attr('id')] = grecaptcha.render($(this).attr('id'), {'sitekey' : $(this).data('sitekey')});
+					});
+				}
+			
+			</script>
+			<script type="text/javascript" src="https://www.google.com/recaptcha/api.js?hl=en&onload=ReCaptchaCallback&render=explicit" async defer></script>
+				    <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'a05b8e768ec19d66',t:'MTc4MDQ1Njc2OQ=='};var a=document.createElement('script');a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+ 
+</html>

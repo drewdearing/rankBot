@@ -1,25 +1,47 @@
 {
-  "name": "discordBot",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
-  "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
+  "name": "rankbot",
+  "version": "2.0.0",
+  "description": "Discord bot that surfaces braacket.com power-ranking data and assigns roles by percentile.",
+  "type": "module",
+  "main": "dist/index.js",
+  "engines": {
+    "node": ">=22"
   },
-  "keywords": [],
-  "author": "",
+  "scripts": {
+    "build": "tsc",
+    "start": "node dist/index.js",
+    "dev": "BOT_ENV=dev tsx watch src/index.ts",
+    "register": "tsx src/discord/register.ts",
+    "register:dev": "BOT_ENV=dev tsx src/discord/register.ts",
+    "doctor": "tsx src/scripts/doctor.ts",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "deploy": "bash scripts/deploy.sh",
+    "deploy:rules": "firebase deploy --only firestore:rules,firestore:indexes",
+    "heroku-postbuild": "npm run build"
+  },
+  "keywords": [
+    "discord",
+    "discord-bot",
+    "braacket",
+    "firestore"
+  ],
+  "author": "Drew Dearing",
   "license": "ISC",
   "dependencies": {
-    "@google-cloud/firestore": "^1.0.1",
-    "cheerio": "^1.0.0-rc.2",
-    "discord.js": "^11.4.2",
-    "dotenv": "^6.2.0",
-    "firebase-admin": "^7.0.0",
-    "jquery": "^3.3.1",
-    "request": "^2.88.0"
+    "cheerio": "^1.2.0",
+    "discord.js": "^14.26.4",
+    "dotenv": "^17.4.2",
+    "firebase-admin": "^13.10.0",
+    "typesaurus": "^10.7.0",
+    "undici": "^7.28.0",
+    "zod": "^4.4.3"
   },
   "devDependencies": {
-    "nodemon": "^1.18.10"
+    "@types/node": "^25.9.1",
+    "tsx": "^4.22.4",
+    "typescript": "^6.0.3",
+    "vitest": "^4.1.8"
   }
 }
