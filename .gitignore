@@ -1,8 +1,6 @@
 .env
 .env-backup
 .DS_Store
-# Local-only Claude working notes (architectural map for AI sessions).
-CLAUDE.md
 # Per-user Firebase project mapping — each self-hoster sets their own
 # (`firebase use --add <project-id>`). Rules/indexes/firebase.json stay committed.
 .firebaserc
