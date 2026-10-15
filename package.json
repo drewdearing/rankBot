@@ -31,7 +31,7 @@
   "license": "ISC",
   "dependencies": {
     "cheerio": "^1.2.0",
-    "discord.js": "^14.26.4",
+    "discord.js": "^14.27.0",
     "dotenv": "^17.4.2",
     "firebase-admin": "^13.10.0",
     "typesaurus": "^10.7.0",
