@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 #
-# Build-check + deploy: syncs secrets, Firestore rules/indexes, and the bot.
-# Reads secrets from .env and sets them as Heroku config vars (values are never
-# printed; only the keys that actually changed are pushed).
+# Deploys Firestore rules/indexes (--rules) and syncs .env to Heroku config vars
+# (--env: only changed keys, values never printed). The bot itself deploys from
+# GitHub Actions on a merge to master (.github/workflows/deploy.yml), not --heroku.
 #
 # One-time prerequisites:
 #   firebase login && firebase use --add <your-firebase-project-id>
@@ -15,7 +15,7 @@
 # CLI setup) — a misconfigured setup aborts before anything is touched.
 #
 # Usage (no flag = everything):
-#   npm run deploy                 # doctor + tests + sync env + Firestore rules + Heroku
+#   npm run deploy                 # doctor + tests + Firestore rules + sync env + Heroku
 #   npm run deploy -- --rules      # Firestore rules/indexes only
 #   npm run deploy -- --env        # sync .env -> Heroku config only
 #   npm run deploy -- --heroku     # Heroku push only
@@ -65,7 +65,7 @@ env_value() {
 }
 
 # Sync prod secrets from .env to Heroku config — only the keys that changed — and
-# ensure DEV_GUILD_ID is unset in prod (so slash commands register globally).
+# ensure the dev-only DEV_BOT_TOKEN, DEV_CLIENT_ID and DEV_GUILD_ID are unset there.
 sync_env() {
   [ -f .env ] || { echo "✗ no .env file to sync from." >&2; exit 1; }
   local key local_val remote_val

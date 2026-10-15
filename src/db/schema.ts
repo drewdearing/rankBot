@@ -61,7 +61,7 @@ export interface League {
 
 /** A ranked player pulled from the ranking service. */
 export interface Player {
-  /** Lowercased name, used as the document id. */
+  /** `playerKey(name)`, used as the document id (not the raw name). */
   id: string;
   name: string;
   points?: number;
