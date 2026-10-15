@@ -133,15 +133,27 @@ runs in the GitHub environment `production`, so:
    and to `gh` as the repository's owner. The token never appears on screen:
 
    ```sh
-   heroku authorizations:create --description "rankBot GitHub Actions deploy" --short --scope write \
+   heroku authorizations:create --description "rankBot GitHub Actions deploy" --short --scope identity,write \
      | gh secret set HEROKU_API_KEY --env production --repo drewdearing/rankBot
    ```
 
-   The `write` scope leaves account information and config vars (the bot's secrets) out of the
-   token's reach. If Heroku rejects that scope, either when creating the token or when the deploy
-   pushes (`Authentication failed`), run the same command without `--scope write` to store a
-   default-scope token instead, then re-run the deploy. `heroku authorizations` lists tokens and
+   `write` lets the token push to the app, and Heroku's git server also needs `identity`
+   (read-only account information): with `write` alone the push fails with
+   `Couldn't find that user`. Neither scope reaches config vars (the bot's secrets).
+
+   If your local `gh` can't set secrets, run the `heroku authorizations:create` line on its own,
+   without the `| gh secret set` part. It prints the token: paste it in GitHub under Settings →
+   Environments → `production` → Environment secrets as `HEROKU_API_KEY`.
+
+   If the deploy's Push to Heroku step fails with `Couldn't find that user` or
+   `Authentication failed`, store a token made without `--scope` instead: the same command
+   without `--scope identity,write`. That token has full access to the account. Revoke the
+   scoped one it replaces: `heroku authorizations` lists tokens and
    `heroku authorizations:revoke <id>` removes one.
+
+   After storing a new token, re-run the failed Deploy run's failed jobs (on the run's page,
+   Re-run jobs → Re-run failed jobs, or `gh run rerun <run-id> --failed`). The re-run reads the
+   new secret, so no new push is needed.
 
 **Firestore rules and indexes, and Heroku config vars, are deployed from a machine with the
 logins**, not by the workflow. One-time setup: `firebase login`,
