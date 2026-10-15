@@ -27,7 +27,7 @@ Dearing owns it. Architecture, the update algorithm and the decisions behind the
 
 ## Commands
 ```sh
-npm ci                 # Node 24 (engines: >=22); CI uses 24
+npm ci                 # Node 24 (engines: 24.x, which pins Heroku's Node); CI uses 24
 npm run typecheck      # tsc --noEmit — src/ only (tsconfig excludes test/)
 npm test               # vitest: 55 tests in 7 files, offline (HTML fixtures), no credentials
 npm run build          # tsc -> dist/ (gitignored; Heroku builds it in heroku-postbuild)

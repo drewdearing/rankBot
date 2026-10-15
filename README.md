@@ -69,7 +69,7 @@ All config comes from environment variables (see [`.env.example`](./.env.example
 
 ## Local development
 
-Requires **Node 22+**.
+Requires **Node 24**: `engines` pins `24.x`, the line Heroku builds with and CI runs.
 
 ```sh
 npm install
