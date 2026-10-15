@@ -6,9 +6,10 @@ code disagree, trust the code and fix this file.
 
 ## Runtime and stack
 
-- **Node ≥ 22** (`engines`; development and CI use 24). **TypeScript** with `strict` and
-  `noUncheckedIndexedAccess`; **ESM** (`module: NodeNext`, target ES2022). `tsc` compiles `src/`
-  to `dist/`, which is gitignored: Heroku builds it in `heroku-postbuild`.
+- **Node 24** (`engines: 24.x`, which pins the version Heroku builds with; development and CI use
+  24 too). **TypeScript** with `strict` and `noUncheckedIndexedAccess`; **ESM**
+  (`module: NodeNext`, target ES2022). `tsc` compiles `src/` to `dist/`, which is gitignored:
+  Heroku builds it in `heroku-postbuild`.
 - **discord.js 14**, intents `Guilds` and the privileged `GuildMembers` (enabled in the Developer
   Portal; needed to assign roles). There are no message commands, so no MessageContent intent.
 - **firebase-admin 13 with Typesaurus 10**, a typed Firestore ODM. The Admin SDK bypasses security
